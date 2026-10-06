@@ -71,6 +71,7 @@ export class Rational {
       }
       d = BigInt(d);
     }
+    if (d === 0n) throw new Error('Division by zero in Rational.of');
     if (n === 0n) return Rational.ZERO;
     if (n === 1n && d === 1n) return Rational.ONE;
     return new Rational(n, d);
@@ -82,6 +83,16 @@ export class Rational {
   static fromDecimalString(s: string): Rational {
     s = s.trim();
     if (s === '') return Rational.ZERO;
+
+    // Scientific notation ("1e-7", "2.5E3"), e.g. produced by Number.prototype.toString for tiny / huge values.
+    const exp = s.match(/^([+-]?(?:\d+\.?\d*|\.\d+))[eE]([+-]?\d+)$/);
+    if (exp) {
+      const e = Number(exp[2]);
+      if (!Number.isSafeInteger(e) || Math.abs(e) > 100000) throw new Error(`Exponent out of range in "${s}"`);
+      const mant = Rational.fromDecimalString(exp[1]!);
+      const pow = 10n ** BigInt(Math.abs(e));
+      return e >= 0 ? mant.mul(new Rational(pow, 1n)) : mant.div(new Rational(pow, 1n));
+    }
 
     const isNeg = s.startsWith('-');
     if (isNeg || s.startsWith('+')) {
@@ -97,7 +108,7 @@ export class Rational {
     const intPart = s.substring(0, dotIdx);
     const fracPart = s.substring(dotIdx + 1);
 
-    const scale = BigInt(10 ** fracPart.length);
+    const scale = 10n ** BigInt(fracPart.length);
     const n = BigInt(intPart + fracPart);
 
     return new Rational(isNeg ? -n : n, scale);
@@ -112,6 +123,7 @@ export class Rational {
 
     const slashIdx = s.indexOf('/');
     if (slashIdx !== -1) {
+      if (s.indexOf('/', slashIdx + 1) !== -1) throw new Error(`Cannot parse "${s}" as a rational number`);
       const numStr = s.substring(0, slashIdx).trim();
       const denStr = s.substring(slashIdx + 1).trim();
       const num = Rational.parse(numStr);
@@ -119,7 +131,7 @@ export class Rational {
       return num.div(den);
     }
 
-    if (s.includes('.')) {
+    if (s.includes('.') || /[eE]/.test(s)) {
       return Rational.fromDecimalString(s);
     }
 

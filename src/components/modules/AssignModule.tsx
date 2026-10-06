@@ -124,8 +124,8 @@ export default function AssignModule() {
       input={<>
         <Card title="Cost matrix"><div className="flex flex-col gap-3">
           <label className="flex items-center gap-2 text-xs">Example<select className="select" value="" aria-label="Load an example" onChange={e => { const x = libraryFor('assign')[Number(e.target.value)]; if (x) { setSpec(structuredClone(x.spec) as AssignSpec); setStep(0); } }}><option value="" disabled>Choose…</option>{libraryFor('assign').map((x, i) => <option key={x.id} value={i}>{x.title}</option>)}</select></label>
-          <Segmented label="Objective" value={spec.objective} onChange={o => setSpec({ ...spec, objective: o })} options={[{ value: 'min', label: 'Minimise cost' }, { value: 'max', label: 'Maximise profit' }]} />
-          <MatrixEditor caption="Assignment costs" values={spec.costs} onChange={costs => setSpec({ ...spec, costs })} rowLabels={spec.rows} colLabels={spec.cols} onRowLabels={rows => setSpec({ ...spec, rows })} onColLabels={cols => setSpec({ ...spec, cols })} allowBlocked maxRows={10} maxCols={10} cornerLabel="worker \ job" />
+          <Segmented label="Objective" value={spec.objective} onChange={o => setSpec(s => ({ ...s, objective: o }))} options={[{ value: 'min', label: 'Minimise cost' }, { value: 'max', label: 'Maximise profit' }]} />
+          <MatrixEditor caption="Assignment costs" values={spec.costs} onChange={costs => setSpec(s => ({ ...s, costs }))} rowLabels={spec.rows} colLabels={spec.cols} onRowLabels={rows => setSpec(s => ({ ...s, rows }))} onColLabels={cols => setSpec(s => ({ ...s, cols }))} allowBlocked maxRows={10} maxCols={10} cornerLabel="worker \ job" />
         </div></Card>
         {error && <Callout kind="bad">{error}</Callout>}
         {sol && <DiagnosticsList items={sol.diagnostics} />}

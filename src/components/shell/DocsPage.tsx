@@ -1,16 +1,16 @@
 import { Card } from '../ui/ui';
 
 export function DocsPage() {
-  const S = ({ t, children }: { t: string; children: React.ReactNode }) => <Card title={t}><div className="text-sm flex flex-col gap-2 leading-relaxed" style={{ color: 'var(--text-2)' }}>{children}</div></Card>;
+  const S = ({ t, children }: { t: string; children: React.ReactNode }) => <Card title={t} className="min-w-0"><div className="text-sm flex flex-col gap-2 leading-relaxed" style={{ color: 'var(--text-2)' }}>{children}</div></Card>;
   return (
     <div className="flex flex-col gap-4 max-w-4xl">
       <h1 className="display text-3xl font-semibold">User manual</h1>
       <S t="1 · The workspace">
-        <p>Every module has the same layout: <b>input</b> on the left, the <b>visualisation</b> in the middle and the written <b>explanation</b> on the right (stacked on phones, with tabs). The step player runs a solution forwards and backwards; the bottom bar exports, saves, loads and shares.</p>
+        <p>Every module has the same layout, read top to bottom like a worked sheet: <b>01 Model</b> (the input, which can be hidden), then <b>02 Solution</b> — the result, the written <b>explanation</b> of the current step and the <b>visualisation</b>, with view tabs. The step player docked at the bottom runs a solution forwards and backwards; the toolbar in the title block exports, saves, opens and shares.</p>
         <p><b>Auto / Tutor</b> toggle in the header switches instantly. In Tutor mode the next decision is hidden and you choose it; wrong answers explain the specific misconception.</p>
       </S>
       <S t="2 · Entering a linear programme">
-        <pre className="mono text-[0.82rem] p-3 rounded-md" style={{ background: 'var(--surface-2)' }}>{`max 3x1 + 5x2
+        <pre className="mono text-[0.82rem] p-3 rounded-md overflow-x-auto max-w-full" style={{ background: 'var(--surface-2)' }} tabIndex={0} aria-label="Example model text">{`max 3x1 + 5x2
 subject to
   labour: x1 + 2x2 <= 10
   3x1 + 2x2 >= 6

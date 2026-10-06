@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Sigma, ShieldCheck, Square } from 'lucide-react';
+import { Sigma, ShieldCheck, Square, Plus, Minus } from 'lucide-react';
 import { SavedModel } from '../../core/types/models';
 import { Rational } from '../../core/math/rational';
 import { minimiseUnconstrained, checkKKT, solveQP, UnconstrainedResult, NLPState } from '../../core/solvers/nlp/nlp';
@@ -63,6 +63,7 @@ export default function NLPModule() {
   const [step, setStep] = useState(0);
   const pngRef = useRef<HTMLElement | null>(null);
   const set = (p: Partial<NLPSpec>) => setSpec(s => ({ ...s, ...p }));
+  const upd = (f: (s: NLPSpec) => Partial<NLPSpec>) => setSpec(s => ({ ...s, ...f(s) }));
   const saved = useSaved('nlp', spec, spec.method);
   const unc = useMemo(() => (spec.tab === 'unconstrained' && spec.expression.trim() ? minimiseUnconstrained({ expression: spec.expression, start: list(spec.start), method: spec.method, maxIterations: 300 }) : null), [spec.tab, spec.expression, spec.start, spec.method]);
   useEffect(() => setStep(0), [spec.expression, spec.start, spec.method, spec.tab]);
@@ -75,6 +76,12 @@ export default function NLPModule() {
     const g = (m: ReturnType<typeof cv>) => m.map(r => r.map(x => (x as { ok: true; value: Rational }).value));
     return solveQP({ Q: g(Qm), c: c.map(x => (x as { ok: true; value: Rational }).value), A: g(A), b: b.map(x => (x as { ok: true; value: Rational }).value) });
   }, [spec.tab, spec.Q, spec.c, spec.A, spec.b]);
+  // one atomic update: Q, c and the columns of A always keep the same size
+  const resizeQP = (k: number) => upd(s => ({
+    Q: Array.from({ length: k }, (_, i) => Array.from({ length: k }, (__, j) => s.Q[i]?.[j] ?? '0')),
+    c: Array.from({ length: k }, (_, i) => s.c[i] ?? '0'),
+    A: s.A.map(r => Array.from({ length: k }, (_, j) => r[j] ?? '0')),
+  }));
   const steps = unc?.steps ?? [];
   const idx = clampStep(step, steps.length);
   const st = steps[idx];
@@ -125,14 +132,15 @@ export default function NLPModule() {
             <div className="flex gap-2"><Btn aria-pressed={spec.method === 'newton'} onClick={() => set({ method: 'newton' })}>Newton</Btn><Btn aria-pressed={spec.method === 'gradient'} onClick={() => set({ method: 'gradient' })}>Gradient descent</Btn></div>
           </>}
           {spec.tab === 'kkt' && <>
-            <div className="flex flex-col gap-2"><div className="text-[0.9rem] font-semibold">Constraints g(x) ≤ 0 or h(x) = 0</div>{spec.constraints.map((c, i) => <div key={i} className="flex gap-2"><input className="input mono" aria-label={`Constraint ${i + 1}`} value={c.expr} onChange={e => set({ constraints: spec.constraints.map((x, k) => (k === i ? { ...x, expr: e.target.value } : x)) })} /><select className="select !w-20" aria-label="Type" value={c.kind} onChange={e => set({ constraints: spec.constraints.map((x, k) => (k === i ? { ...x, kind: e.target.value as 'le' | 'eq' } : x)) })}><option value="le">≤ 0</option><option value="eq">= 0</option></select><Btn size="icon" variant="ghost" aria-label="Remove" onClick={() => set({ constraints: spec.constraints.filter((_, k) => k !== i) })}>✕</Btn></div>)}<Btn size="sm" onClick={() => set({ constraints: [...spec.constraints, { expr: '', kind: 'le' }] })}>+ constraint</Btn></div>
+            <div className="flex flex-col gap-2"><div className="text-[0.9rem] font-semibold">Constraints g(x) ≤ 0 or h(x) = 0</div>{spec.constraints.map((c, i) => <div key={i} className="flex gap-2"><input className="input mono" aria-label={`Constraint ${i + 1}`} value={c.expr} onChange={e => { const v = e.target.value; upd(s => ({ constraints: s.constraints.map((x, k) => (k === i ? { ...x, expr: v } : x)) })); }} /><select className="select !w-20" aria-label="Type" value={c.kind} onChange={e => { const v = e.target.value as 'le' | 'eq'; upd(s => ({ constraints: s.constraints.map((x, k) => (k === i ? { ...x, kind: v } : x)) })); }}><option value="le">≤ 0</option><option value="eq">= 0</option></select><Btn size="icon" variant="ghost" aria-label="Remove" onClick={() => upd(s => ({ constraints: s.constraints.filter((_, k) => k !== i) }))}>✕</Btn></div>)}<Btn size="sm" onClick={() => upd(s => ({ constraints: [...s.constraints, { expr: '', kind: 'le' }] }))}>+ constraint</Btn></div>
             <Field label="Candidate point">{id => <input id={id} className="input mono" value={spec.point} onChange={e => set({ point: e.target.value })} />}</Field>
           </>}
           {spec.tab === 'qp' && <div className="flex flex-col gap-3">
             <p className="text-[0.88rem] muted">Minimise ½ xᵀQx + cᵀx subject to Ax ≤ b, x ≥ 0.</p>
-            <div className="eyebrow">Q (symmetric)</div><MatrixEditor caption="Q" values={spec.Q} onChange={Qm => set({ Q: Qm, c: Qm.map((_, i) => spec.c[i] ?? '0'), A: spec.A.map(r => Qm.map((_, j) => r[j] ?? '0')) })} square resizable maxRows={5} maxCols={5} />
-            <div className="eyebrow">c</div><div className="flex gap-1.5">{spec.c.map((v, i) => <input key={i} className="input num" aria-label={`c${i + 1}`} value={v} onChange={e => set({ c: spec.c.map((x, k) => (k === i ? e.target.value : x)) })} />)}</div>
-            <div className="eyebrow">A | b</div><MatrixEditor caption="Constraints A" values={spec.A} onChange={A => set({ A, b: A.map((_, i) => spec.b[i] ?? '0') })} resizable minRows={1} maxRows={6} colExtra={undefined} rowExtra={{ label: 'b', values: spec.b, onChange: b => set({ b }) }} />
+            <div className="eyebrow">Q (symmetric)</div><MatrixEditor caption="Q" values={spec.Q} onChange={Qm => upd(() => ({ Q: Qm }))} resizable={false} />
+            <div className="flex flex-wrap items-center gap-1.5 text-xs"><span className="muted mr-1">Variables</span><Btn size="icon" aria-label="Remove a variable" disabled={n <= 1} onClick={() => resizeQP(n - 1)}><Minus size={12} /></Btn><span className="mono w-4 text-center">{n}</span><Btn size="icon" aria-label="Add a variable" disabled={n >= 5} onClick={() => resizeQP(n + 1)}><Plus size={12} /></Btn></div>
+            <div className="eyebrow">c</div><div className="flex gap-1.5">{spec.c.map((v, i) => <input key={i} className="input num" aria-label={`c${i + 1}`} value={v} onChange={e => { const v = e.target.value; upd(s => ({ c: s.c.map((x, k) => (k === i ? v : x)) })); }} />)}</div>
+            <div className="eyebrow">A | b</div><MatrixEditor caption="Constraints A" values={spec.A} onChange={A => upd(s => ({ A, b: A.map((_, i) => s.b[i] ?? '0') }))} resizable minRows={1} maxRows={6} minCols={n} maxCols={n} colExtra={undefined} rowExtra={{ label: 'b', values: spec.b, onChange: b => set({ b }) }} />
           </div>}
         </div></Card>
         {unc && <DiagnosticsList items={unc.diagnostics} />}

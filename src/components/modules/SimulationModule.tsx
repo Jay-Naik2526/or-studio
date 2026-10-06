@@ -35,6 +35,14 @@ export function toDist(d: DistSpec): Distribution | string {
   }
 }
 
+/** Parse a numeric field; an empty or unreadable entry is reported instead of silently replaced by a default (blankIs = value used for an empty field). */
+function field(label: string, text: string, blankIs?: number): { v: number } | { error: string } {
+  if (text.trim() === '') return blankIs === undefined ? { error: `${label}: enter a number.` } : { v: blankIs };
+  const v = plainNum(text);
+  return v === null ? { error: `${label}: "${text.length > 24 ? text.slice(0, 24) + '…' : text}" is not a number.` } : { v };
+}
+const failed = (...r: ({ v: number } | { error: string })[]): string | null => { for (const x of r) if ('error' in x) return x.error; return null; };
+
 function DistEditor({ label, d, onChange }: { label: string; d: DistSpec; onChange: (d: DistSpec) => void }) {
   const names: Record<DistSpec['type'], string[]> = { uniform: ['a', 'b'], exponential: ['rate'], normal: ['mean', 'σ'], triangular: ['a', 'm', 'b'], poisson: ['mean'], constant: ['value'], discrete: [] };
   const keys = ['p1', 'p2', 'p3'] as const;
@@ -57,19 +65,27 @@ export default function SimulationModule() {
   const [runKey, setRunKey] = useState(0);
   const pngRef = useRef<HTMLElement | null>(null);
   const set = (p: Partial<SimSpec>) => setSpec(s => ({ ...s, ...p }));
+  const upd = (f: (s: SimSpec) => Partial<SimSpec>) => setSpec(s => ({ ...s, ...f(s) }));
   const saved = useSaved('simulation', spec);
-  const seed = plainNum(spec.seed) ?? 1;
+  const seedField = field('Seed', spec.seed);
+  const seed = 'v' in seedField ? seedField.v : 1;
 
   const mc = useMemo(() => {
     if (spec.kind !== 'montecarlo') return null;
+    const trials = field('Trials', spec.trials), threshold = field('Threshold', spec.threshold, NaN);
+    const bad = failed(seedField, trials, threshold);
+    if (bad) return { error: bad } as ReturnType<typeof runMonteCarlo>;
     const vars = []; for (const v of spec.vars) { const d = toDist(v.dist); if (typeof d === 'string') return { error: `${v.name}: ${d}` } as ReturnType<typeof runMonteCarlo>; vars.push({ name: v.name, dist: d }); }
-    return runMonteCarlo({ variables: vars, expression: spec.expression, trials: plainNum(spec.trials) ?? 1000, seed, generator: spec.generator, threshold: spec.threshold.trim() ? plainNum(spec.threshold) ?? undefined : undefined });
+    return runMonteCarlo({ variables: vars, expression: spec.expression, trials: (trials as { v: number }).v, seed, generator: spec.generator, threshold: Number.isNaN((threshold as { v: number }).v) ? undefined : (threshold as { v: number }).v });
   }, [spec, seed, runKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const qs = useMemo(() => {
     if (spec.kind !== 'queue') return null;
     const ia = toDist(spec.interarrival), sv = toDist(spec.service);
     if (typeof ia === 'string' || typeof sv === 'string') return { error: typeof ia === 'string' ? `Interarrival: ${ia}` : `Service: ${sv}` } as ReturnType<typeof runQueueSimulation>;
-    return runQueueSimulation({ interarrival: ia, service: sv, servers: plainNum(spec.servers) ?? 1, customers: plainNum(spec.customers) ?? 1000, seed, generator: spec.generator, warmup: plainNum(spec.warmup) ?? 0 });
+    const servers = field('Servers', spec.servers), customers = field('Customers', spec.customers), warmup = field('Warm-up', spec.warmup, 0);
+    const bad = failed(seedField, servers, customers, warmup);
+    if (bad) return { error: bad } as ReturnType<typeof runQueueSimulation>;
+    return runQueueSimulation({ interarrival: ia, service: sv, servers: (servers as { v: number }).v, customers: (customers as { v: number }).v, seed, generator: spec.generator, warmup: (warmup as { v: number }).v });
   }, [spec, seed, runKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const theory = useMemo(() => {
     if (spec.kind !== 'queue') return null;
@@ -120,8 +136,8 @@ export default function SimulationModule() {
         {spec.kind === 'montecarlo' ? (
           <Card title="Experiment"><div className="flex flex-col gap-4">
             <label className="flex items-center gap-2 text-[0.9rem]">Example<select className="select" value="" aria-label="Load an example" onChange={e => { const x = libraryFor('simulation').filter(y => (y.spec as SimSpec).kind === 'montecarlo')[Number(e.target.value)]; if (x) setSpec(structuredClone(x.spec) as SimSpec); }}><option value="" disabled>Choose…</option>{libraryFor('simulation').filter(y => (y.spec as SimSpec).kind === 'montecarlo').map((x, i) => <option key={x.id} value={i}>{x.title}</option>)}</select></label>
-            {spec.vars.map((v, i) => <div key={i} className="flex flex-col gap-1 pb-3 border-b" style={{ borderColor: 'var(--border)' }}><div className="flex gap-2 items-center"><input className="input mono !w-20" aria-label={`Variable ${i + 1} name`} value={v.name} onChange={e => set({ vars: spec.vars.map((x, k) => (k === i ? { ...x, name: e.target.value } : x)) })} /><span className="muted">~</span><Btn size="sm" variant="ghost" onClick={() => set({ vars: spec.vars.filter((_, k) => k !== i) })} aria-label={`Remove variable ${v.name}`}>remove</Btn></div><DistEditor label="" d={v.dist} onChange={d => set({ vars: spec.vars.map((x, k) => (k === i ? { ...x, dist: d } : x)) })} /></div>)}
-            <Btn size="sm" onClick={() => set({ vars: [...spec.vars, { name: `v${spec.vars.length + 1}`, dist: { type: 'uniform', p1: '0', p2: '1', p3: '', values: '' } }] })}>+ random variable</Btn>
+            {spec.vars.map((v, i) => <div key={i} className="flex flex-col gap-1 pb-3 border-b" style={{ borderColor: 'var(--border)' }}><div className="flex gap-2 items-center"><input className="input mono !w-20" aria-label={`Variable ${i + 1} name`} value={v.name} onChange={e => { const nv = e.target.value; upd(s => ({ vars: s.vars.map((x, k) => (k === i ? { ...x, name: nv } : x)) })); }} /><span className="muted">~</span><Btn size="sm" variant="ghost" onClick={() => upd(s => ({ vars: s.vars.filter((_, k) => k !== i) }))} aria-label={`Remove variable ${v.name}`}>remove</Btn></div><DistEditor label="" d={v.dist} onChange={d => upd(s => ({ vars: s.vars.map((x, k) => (k === i ? { ...x, dist: d } : x)) }))} /></div>)}
+            <Btn size="sm" onClick={() => upd(s => ({ vars: [...s.vars, { name: `v${s.vars.length + 1}`, dist: { type: 'uniform', p1: '0', p2: '1', p3: '', values: '' } }] }))}>+ random variable</Btn>
             <Field label="Expression" hint="+ − * / ^, ( ), sqrt, exp, ln, sin, cos, abs, min, max, step(x) = 1 if x ≥ 0">{id => <input id={id} className="input mono" value={spec.expression} onChange={e => set({ expression: e.target.value })} />}</Field>
             <div className="grid grid-cols-2 gap-3"><Field label="Trials">{id => <input id={id} className="input mono" value={spec.trials} onChange={e => set({ trials: e.target.value })} />}</Field><Field label="Threshold (optional)" hint="estimate P(result ≥ t)">{id => <input id={id} className="input mono" value={spec.threshold} onChange={e => set({ threshold: e.target.value })} />}</Field></div>
           </div></Card>

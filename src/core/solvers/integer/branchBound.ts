@@ -184,7 +184,13 @@ export class BranchBoundSolver implements Solver<LPModel, BBState, BBResult> {
       diagnostics.push({ severity: 'error', code: 'UNBOUNDED_RELAXATION', message: 'The LP relaxation is unbounded — the integer problem is unbounded or infeasible. Bound the variables to find out which.' });
       return { steps, result: null, status: 'unbounded', diagnostics, metrics: { iterations: 1, elapsedMs: performance.now() - t0, degradedToFloat: false } };
     }
-    if (!rootSol.result) return fail('The LP relaxation could not be solved.', 'LP_FAILED');
+    if (!rootSol.result || rootSol.status === 'iteration-limit') {
+      return {
+        steps, result: null, status: rootSol.status === 'iteration-limit' ? 'iteration-limit' : 'invalid-input',
+        diagnostics: [{ severity: 'error', code: 'LP_FAILED', message: 'The LP relaxation could not be solved to optimality (iteration limit reached), so no bound is available.' }],
+        metrics: { iterations: 1, elapsedMs: performance.now() - t0, degradedToFloat: false },
+      };
+    }
 
     root.relaxation = { values: rootSol.result.variableValues, objective: rootSol.result.objectiveValue };
     const rootBound = root.relaxation.objective;
@@ -295,6 +301,7 @@ export class BranchBoundSolver implements Solver<LPModel, BBState, BBResult> {
 
     /* ---------- main loop ---------- */
     let nodeBudgetHit = false;
+    let lpLimitHit = false;
     while (open.length > 0) {
       if (nodes.length >= maxNodes) { nodeBudgetHit = true; break; }
       // select
@@ -324,6 +331,12 @@ export class BranchBoundSolver implements Solver<LPModel, BBState, BBResult> {
         record(id, 'prune', `Node ${id} (${nd.branchLabel}) is infeasible.`, `Adding ${nd.branchLabel} leaves no feasible LP point, so this subtree contains no integer solution.`, 'Prune by infeasibility', 'continue', 'blocked');
         continue;
       }
+      if (sol.status === 'iteration-limit') {
+        // The relaxation could not be solved to optimality: pruning or branching on it would be unsound. Stop honestly.
+        open.push(id);
+        lpLimitHit = true;
+        break;
+      }
       if (sol.status === 'unbounded' || !sol.result) {
         nd.status = 'pruned-infeasible';
         nd.pruneReason = 'Unbounded subproblem.';
@@ -336,11 +349,11 @@ export class BranchBoundSolver implements Solver<LPModel, BBState, BBResult> {
     }
 
     const elapsed = performance.now() - t0;
-    if (nodeBudgetHit) {
+    if (nodeBudgetHit || lpLimitHit) {
       diagnostics.push({
         severity: 'warning',
-        code: 'NODE_LIMIT',
-        message: `Node limit (${maxNodes}) reached with ${open.length} open node(s). The search is incomplete: ${incumbent ? `best integer solution so far z = ${incumbent.objective.toString()} is NOT proven optimal` : 'no integer solution found yet'}. Raise the limit, switch the node-selection strategy, or abort.`,
+        code: lpLimitHit ? 'LP_ITERATION_LIMIT' : 'NODE_LIMIT',
+        message: `${lpLimitHit ? 'A node relaxation hit the simplex iteration limit' : `Node limit (${maxNodes}) reached`} with ${open.length} open node(s). The search is incomplete: ${incumbent ? `best integer solution so far z = ${incumbent.objective.toString()} is NOT proven optimal` : 'no integer solution found yet'}. Raise the limit, switch the node-selection strategy, or abort.`,
       });
       const gapVal: Rational | null = incumbent && bestOpenBound() ? bestOpenBound()!.sub(incumbent.objective).abs() : null;
       record(null, 'limit', 'Node limit reached.', 'The configured node limit was reached before the tree was exhausted.', 'Node limit', 'iteration-limit', 'changed');

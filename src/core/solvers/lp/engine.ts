@@ -861,6 +861,7 @@ function runPrimal(
           severity: 'error',
           code: 'INFEASIBLE',
           message: `Infeasible: the Big-M iteration found an improving direction, but artificial variable(s) for ${joinList(names)} are still positive, which proves no feasible point exists.`,
+          detail: probe.diagnostics.find(dg => dg.code === 'INFEASIBLE')?.detail,
         });
         pushStep(
           rec, w, cfg, undefined, 'Termination', { kind: 'infeasible', payload: {} },
@@ -877,6 +878,16 @@ function runPrimal(
       const full = runPrimal(model, sf, { steps: [], diags: [], emit: rec.emit, seen: new Set() }, 'twoPhase', maxIterations, options);
       full.diagnostics.unshift({ severity: 'info', code: 'BIGM_FALLBACK', message: 'Big-M reached an ambiguous unbounded direction with an artificial variable still positive; the Two-Phase derivation is shown instead.' });
       return full;
+    }
+    if (out.status === 'optimal' && w.basis.some(bc => w.types[bc] === 'artificial') && !w.basis.some((bc, i) => w.types[bc] === 'artificial' && w.b[i]!.isPositive())) {
+      // Optimal, but an artificial is still basic at value 0 (degenerate). Its row would corrupt the shadow prices and
+      // the ranging, so exchange it for a real column (or flag the row redundant) and re-confirm optimality.
+      driveOutArtificials(w, rows, rec, redundant, cfg, 'Big-M – clean-up');
+      for (let j = 0; j < w.n; j++) if (w.types[j] === 'artificial') { w.allowEnter[j] = false; w.visible[j] = false; }
+      setObjective(w, sf, false);
+      const outB = runLoop(w, cfg, rec, { dual: false, maxIterations: maxIterations - iterations, phaseLabel: 'Big-M iteration', iterStart: iterations, antiCycling: options.antiCycling });
+      iterations += outB.iterations;
+      return finishPrimal(model, sf, rows, w, cfg, rec, outB, method, iterations, redundant, null);
     }
     return finishPrimal(model, sf, rows, w, cfg, rec, out, method, iterations, redundant, null);
   }
@@ -925,7 +936,7 @@ function runPrimal(
       code: 'INFEASIBLE',
       message: `Infeasible: Phase I ends with w = ${wStar.toString()} > 0 — the constraints cannot all hold at once.` +
         (names.length ? ` The conflict involves ${joinList(names)}.` : ''),
-      detail: multipliers.map(m => `${m.multiplier.toString()} × (${m.label})`).join('  +  '),
+      detail: certificateText(multipliers),
     });
     pushStep(
       rec, w, cfg1, undefined, 'Phase I – termination', { kind: 'infeasible', payload: { w: wStar.toString() } },
@@ -949,45 +960,7 @@ function runPrimal(
     };
   }
 
-  // Drive any artificial variables still in the basis (at value 0) out.
-  for (let i = 0; i < w.m; i++) {
-    const bc = w.basis[i]!;
-    if (w.types[bc] !== 'artificial') continue;
-    let pc = -1;
-    for (let j = 0; j < w.n; j++) {
-      if (w.types[j] === 'artificial') continue;
-      if (!w.A[i]![j]!.isZero()) { pc = j; break; }
-    }
-    if (pc === -1) {
-      const orig = rows[i]!.origIndex;
-      if (orig !== null) redundant.push(orig);
-      addDiag(rec, {
-        severity: 'warning',
-        code: 'REDUNDANT_CONSTRAINT',
-        message: `${rows[i]!.label} is redundant: it is implied by the other constraints (its row is all zeros after Phase I, with ${w.names[bc]} = 0 left in the basis).`,
-      });
-      continue;
-    }
-    const outName = w.names[bc]!;
-    const inName = w.names[pc]!;
-    const pv = w.A[i]![pc]!;
-    pivotWork(w, i, pc);
-    addDiag(rec, {
-      severity: 'info',
-      code: 'ARTIFICIAL_DRIVEN_OUT',
-      message: `${outName} was in the basis at value 0 after Phase I; pivoted ${inName} in on a non-zero entry to remove it (degenerate pivot).`,
-    });
-    pushStep(
-      rec, w, cfg1, undefined, 'Phase I – clean-up', { kind: 'pivot', payload: { entering: inName, leaving: outName } },
-      {
-        short: `${outName} (value 0) leaves, ${inName} enters.`,
-        detailed: `Phase I reached w = 0 but ${outName} remained basic at level 0. It is exchanged for ${inName} using the non-zero pivot element ${pv.toString()}; this changes the basis but not the vertex.`,
-        rule: 'Drive artificial variables out of the basis',
-      },
-      [{ target: `row:${i}`, intent: 'changed' }],
-      'continue'
-    );
-  }
+  driveOutArtificials(w, rows, rec, redundant, cfg1, 'Phase I – clean-up');
 
   // Phase II
   for (let j = 0; j < w.n; j++) {
@@ -1014,6 +987,48 @@ function runPrimal(
   const out2 = runLoop(w, cfg2, rec, { dual: false, maxIterations: maxIterations - iterations, phaseLabel: 'Phase II iteration', iterStart: iterations, antiCycling: options.antiCycling });
   iterations += out2.iterations;
   return finishPrimal(model, sf, rows, w, cfg2, rec, out2, method, iterations, redundant, null);
+}
+
+/** Exchange artificial variables left in the basis at value 0 for real columns (or flag the row redundant). */
+function driveOutArtificials(w: Work, rows: NormalizedRow[], rec: Recorder, redundant: number[], cfg: SnapCfg, phaseLabel: string): void {
+  for (let i = 0; i < w.m; i++) {
+    const bc = w.basis[i]!;
+    if (w.types[bc] !== 'artificial') continue;
+    let pc = -1;
+    for (let j = 0; j < w.n; j++) {
+      if (w.types[j] === 'artificial') continue;
+      if (!w.A[i]![j]!.isZero()) { pc = j; break; }
+    }
+    if (pc === -1) {
+      const orig = rows[i]!.origIndex;
+      if (orig !== null && !redundant.includes(orig)) redundant.push(orig);
+      addDiag(rec, {
+        severity: 'warning',
+        code: 'REDUNDANT_CONSTRAINT',
+        message: `${rows[i]!.label} is redundant: it is implied by the other constraints (its row is all zeros after Phase I, with ${w.names[bc]} = 0 left in the basis).`,
+      });
+      continue;
+    }
+    const outName = w.names[bc]!;
+    const inName = w.names[pc]!;
+    const pv = w.A[i]![pc]!;
+    pivotWork(w, i, pc);
+    addDiag(rec, {
+      severity: 'info',
+      code: 'ARTIFICIAL_DRIVEN_OUT',
+      message: `${outName} was in the basis at value 0 after Phase I; pivoted ${inName} in on a non-zero entry to remove it (degenerate pivot).`,
+    });
+    pushStep(
+      rec, w, cfg, undefined, phaseLabel, { kind: 'pivot', payload: { entering: inName, leaving: outName } },
+      {
+        short: `${outName} (value 0) leaves, ${inName} enters.`,
+        detailed: `The artificial ${outName} remained basic at level 0. It is exchanged for ${inName} using the non-zero pivot element ${pv.toString()}; this changes the basis but not the vertex.`,
+        rule: 'Drive artificial variables out of the basis',
+      },
+      [{ target: `row:${i}`, intent: 'changed' }],
+      'continue'
+    );
+  }
 }
 
 function finishPrimal(
@@ -1097,6 +1112,9 @@ function finishPrimal(
       severity: 'error',
       code: 'INFEASIBLE',
       message: `Infeasible: the Big-M optimum still has artificial variable ${w.names[w.basis[badArt]!]} > 0 (conflict involving ${joinList(names)}).`,
+      detail: method === 'bigM'
+        ? runPrimal(model, sf, { steps: [], diags: [], emit: false, seen: new Set() }, 'twoPhase', 1000, { emitSteps: false }).diagnostics.find(dg => dg.code === 'INFEASIBLE')?.detail
+        : undefined,
     });
     pushStep(
       rec, w, cfg, undefined, 'Termination', { kind: 'infeasible', payload: {} },
@@ -1128,6 +1146,18 @@ function finishPrimal(
     );
   }
   return { steps: rec.steps, result: { ...res, status }, status, diagnostics: rec.diags, metrics };
+}
+
+/** Farkas-style certificate text: the listed multiples of the constraints add up to a contradiction. */
+function certificateText(mult: { index: number | null; label: string; multiplier: Rational }[]): string {
+  const merged = new Map<string, { label: string; multiplier: Rational }>();
+  for (const m of mult) {
+    const key = m.index === null ? `bound:${m.label}` : `row:${m.index}`;
+    const base = m.index === null ? m.label : m.label.replace(/ \((≤|≥) part\)$/, '');
+    const prev = merged.get(key);
+    merged.set(key, { label: base, multiplier: prev ? prev.multiplier.add(m.multiplier) : m.multiplier });
+  }
+  return [...merged.values()].filter(m => !m.multiplier.isZero()).map(m => `${m.multiplier.toString()} × (${m.label})`).join('  +  ');
 }
 
 function canonName(model: LPModel, j: number): string {
@@ -1190,7 +1220,66 @@ function detectAlternate(
     });
     return true;
   }
+  // At a degenerate vertex a zero-reduced-cost column can fail to expose an alternate optimum (every pivot
+  // is a zero-length step). Settle it exactly: over the optimal face, maximise and minimise each original variable.
+  if (w.b.some(v => v.isZero())) {
+    const other = probeOptimalFace(model, sf, rows, w, cfg, method, redundant, res);
+    if (other) {
+      if (other.unbounded) {
+        res.alternateOptimum = { variableValues: res.variableValues, unboundedFace: true };
+        addDiag(rec, {
+          severity: 'info',
+          code: 'ALTERNATE_OPTIMA_RAY',
+          message: 'Alternate optima: the optimal face is unbounded (found by exploring the degenerate vertex), so infinitely many optimal solutions lie along a ray.',
+        });
+      } else {
+        res.alternateOptimum = { variableValues: other.values };
+        addDiag(rec, {
+          severity: 'info',
+          code: 'ALTERNATE_OPTIMA',
+          message: 'Alternate optima: this degenerate vertex is not the only optimal point; another vertex has the same objective value, and every point between them is optimal.',
+        });
+      }
+      return true;
+    }
+  }
   return false;
+}
+
+function probeOptimalFace(
+  model: LPModel,
+  sf: StandardForm,
+  rows: NormalizedRow[],
+  w: Work,
+  cfg: SnapCfg,
+  method: ConcreteMethod,
+  redundant: number[],
+  res: LPResult
+): { values: Rational[]; unbounded: boolean } | null {
+  const ny = sf.yNames.length;
+  const frozen = w.d.map(v => !v.isZero());
+  for (let j = 0; j < sf.varMaps.length; j++) {
+    for (const sign of [Rational.ONE, Rational.MINUS_ONE]) {
+      const clone: Work = {
+        ...w,
+        A: w.A.map(r => [...r]),
+        b: [...w.b],
+        d: Array.from({ length: w.n }, () => MNum.ZERO),
+        z: MNum.ZERO,
+        basis: [...w.basis],
+        allowEnter: w.allowEnter.map((ok, k) => ok && !frozen[k]),
+      };
+      for (const t of sf.varMaps[j]!.terms) if (t.col < ny) clone.d[t.col] = MNum.of(sign.mul(t.coef).neg());
+      canonicalize(clone);
+      const scratch: Recorder = { steps: [], diags: [], emit: false, seen: new Set() };
+      const out = runLoop(clone, cfg, scratch, { dual: false, maxIterations: 1000, phaseLabel: '', iterStart: 0 });
+      if (out.status === 'unbounded') return { values: res.variableValues, unbounded: true };
+      if (out.status !== 'optimal') continue;
+      const alt = extractResult(model, sf, rows, clone, cfg, method, redundant, 'optimal');
+      if (alt.variableValues.some((v, k) => !v.eq(res.variableValues[k]!))) return { values: alt.variableValues, unbounded: false };
+    }
+  }
+  return null;
 }
 
 function extractResult(
@@ -1337,6 +1426,7 @@ function runDual(model: LPModel, sf: StandardForm, rec: Recorder, maxIterations:
       severity: 'error',
       code: 'INFEASIBLE',
       message: `Infeasible: in the row of ${w.names[w.basis[row]!]} the right-hand side ${w.b[row]!.toString()} is negative but no entry is negative, so no variable can repair it. Conflict involves ${joinList(mult.map(m2 => m2.label))}.`,
+      detail: certificateText(mult),
     });
     pushStep(
       rec, w, cfg, undefined, 'Termination', { kind: 'infeasible', payload: { row } },

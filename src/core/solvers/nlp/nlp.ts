@@ -21,8 +21,13 @@ const num = (v: number): Expr => ({ k: 'num', v });
 const isNum = (e: Expr, v?: number): boolean => e.k === 'num' && (v === undefined || (e as { k: 'num'; v: number }).v === v);
 const nv = (e: Expr): number => (e as { k: 'num'; v: number }).v;
 
+const MAX_EXPR_CHARS = 2000;
+const MAX_EXPR_DEPTH = 80;
+
 export function parseExpression(src: string, varNames: string[]): Expr {
+  if (src.length > MAX_EXPR_CHARS) throw new Error(`The expression is too long (limit ${MAX_EXPR_CHARS} characters).`);
   let p = 0;
+  let depth = 0;
   const s = src.replace(/\s+/g, '').replace(/−/g, '-').replace(/²/g, '^2').replace(/³/g, '^3');
   const peek = () => s[p];
   const fail = (m: string): never => { throw new Error(`${m} (at position ${p + 1} of "${src}")`); };
@@ -36,13 +41,23 @@ export function parseExpression(src: string, varNames: string[]): Expr {
     return l;
   };
   const implicitOk = (l: Expr) => l.k === 'num';
-  const unary = (): Expr => { if (peek() === '-') { p++; return { k: 'neg', a: unary() }; } if (peek() === '+') { p++; return unary(); } return power(); };
+  const unary = (): Expr => {
+    if (++depth > MAX_EXPR_DEPTH) fail('The expression is nested too deeply');
+    try { if (peek() === '-') { p++; return { k: 'neg', a: unary() }; } if (peek() === '+') { p++; return unary(); } return power(); } finally { depth--; }
+  };
   const power = (): Expr => { const b = atom(); if (peek() === '^') { p++; const e = unary(); return { k: 'pow', a: b, b: e }; } return b; };
   const atom = (): Expr => {
     const c = peek();
     if (c === undefined) return fail('Unexpected end of expression');
     if (c === '(') { p++; const e = sum(); if (peek() !== ')') fail("Missing ')'"); p++; return e; }
-    if (/[0-9.]/.test(c)) { let j = p; while (j < s.length && /[0-9.]/.test(s[j]!)) j++; const v = Number(s.slice(p, j)); p = j; return num(v); }
+    if (/[0-9.]/.test(c)) {
+      let j = p; while (j < s.length && /[0-9.]/.test(s[j]!)) j++;
+      // scientific notation (1e-6, 2.5E3) unless the letter starts a variable name such as e1
+      if ((s[j] === 'e' || s[j] === 'E') && /^[+-]?\d/.test(s.slice(j + 1)) && !varNames.some(nm => nm.length > 0 && s.startsWith(nm, j))) { j++; if (s[j] === '+' || s[j] === '-') j++; while (j < s.length && /[0-9]/.test(s[j]!)) j++; }
+      const v = Number(s.slice(p, j));
+      if (!Number.isFinite(v)) { const bad = s.slice(p, j); p = j; return fail(`Bad number "${bad}"`); }
+      p = j; return num(v);
+    }
     if (/[A-Za-z_]/.test(c)) {
       let j = p; while (j < s.length && /[A-Za-z0-9_₀-₉]/.test(s[j]!)) j++;
       const id = s.slice(p, j);
@@ -192,10 +207,19 @@ function eigSym(H: number[][]): number[] {
   return A.map((r, i) => r[i]!).sort((a, b) => a - b);
 }
 
+export const MAX_NLP_VARIABLES = 20;
+export const MAX_NLP_ITERATIONS = 20000;
+
 export function minimiseUnconstrained(input: UnconstrainedInput): UnconstrainedResult {
   const n = input.start.length;
   const names = input.varNames ?? Array.from({ length: n }, (_, i) => `x${i + 1}`);
   const empty: UnconstrainedResult = { x: input.start, f: NaN, converged: false, iterations: 0, gradientText: [], hessianText: [], steps: [], diagnostics: [], evaluate: () => NaN };
+  if (n < 1) return { ...empty, error: 'Enter at least one variable and a starting point.' };
+  if (n > MAX_NLP_VARIABLES) return { ...empty, error: `At most ${MAX_NLP_VARIABLES} variables are supported (the Hessian has n² symbolic entries).` };
+  if (names.length !== n) return { ...empty, error: `There are ${n} starting values but ${names.length} variable names.` };
+  if (!input.start.every(Number.isFinite)) return { ...empty, error: 'Every starting value must be a finite number.' };
+  if (input.maxIterations !== undefined && !(Number.isInteger(input.maxIterations) && input.maxIterations >= 1 && input.maxIterations <= MAX_NLP_ITERATIONS)) return { ...empty, error: `The iteration limit must be a whole number between 1 and ${MAX_NLP_ITERATIONS.toLocaleString('en-US')}.` };
+  if (input.tolerance !== undefined && !(Number.isFinite(input.tolerance) && input.tolerance > 0)) return { ...empty, error: 'The tolerance must be a positive number.' };
   let f: Expr;
   try { f = parseExpression(input.expression, names); } catch (e) { return { ...empty, error: (e as Error).message }; }
   const g = names.map((_, i) => diff(f, i));
@@ -213,6 +237,7 @@ export function minimiseUnconstrained(input: UnconstrainedInput): UnconstrainedR
   const fmt = (v: number[]) => `(${v.map(a => Number(a.toFixed(5))).join(', ')})`;
   push('Start', `Start at ${fmt(x)}, f = ${Number(F(x).toFixed(6))}.`, `∇f = (${g.map(gi => exprToString(gi, names)).join(', ')}). ${input.method === 'newton' ? 'Newton\'s method solves H·d = −∇f for the step.' : 'Gradient descent moves along −∇f with a line search.'}`, 'Initialisation', { x: [...x], f: F(x), grad: G(x), gradNorm: norm(G(x)) }, 'initial');
   let converged = false;
+  let unbounded = false;
   let it = 0;
   for (; it < maxIt; it++) {
     const gr = G(x);
@@ -245,12 +270,14 @@ export function minimiseUnconstrained(input: UnconstrainedInput): UnconstrainedR
     x = xn;
     const grn = G(x);
     push(`Iteration ${it + 1}`, `x ← ${fmt(x)}, f = ${Number(F(x).toFixed(6))}, ‖∇f‖ = ${Number(norm(grn).toPrecision(4))}.`, `Direction d = ${fmt(d)} (${rule}); step length t = ${Number(t.toPrecision(4))} found by backtracking (Armijo) so that f decreases sufficiently.`, rule, { x: [...x], f: F(x), grad: grn, gradNorm: norm(grn), stepSize: t, direction: d, hessianPD: pd });
+    if (norm(x) > 1e8 || Math.abs(F(x)) > 1e30) { unbounded = true; break; }
   }
   const fin = G(x);
   if (norm(fin) < tol) converged = true;
   const Hx = hessianAt(H, x);
   const eig = eigSym(Hx);
   const cls: UnconstrainedResult['classification'] = !converged ? 'inconclusive' : eig[0]! > 1e-9 ? 'minimum' : eig[eig.length - 1]! < -1e-9 ? 'maximum' : eig[0]! < -1e-9 && eig[eig.length - 1]! > 1e-9 ? 'saddle' : 'inconclusive';
+  if (unbounded) diagnostics.push({ severity: 'warning', code: 'UNBOUNDED', message: 'The iterates run off to infinity while f keeps falling: the function appears to be unbounded below, so it has no minimum.' });
   if (!converged) diagnostics.push({ severity: 'warning', code: 'NOT_CONVERGED', message: `Stopped after ${it} iterations with ‖∇f‖ = ${Number(norm(fin).toPrecision(3))}; optimality is not claimed.` });
   push('Result', converged ? `Stationary point ${fmt(x)}: ${cls}, f = ${Number(F(x).toFixed(8))}.` : 'Not converged.', `∇f ≈ 0. Hessian eigenvalues (${eig.map(v => Number(v.toFixed(4))).join(', ')}) ${cls === 'minimum' ? 'are all positive: a strict local minimum (global if f is convex)' : cls === 'maximum' ? 'are all negative: a local maximum' : cls === 'saddle' ? 'have mixed signs: a saddle point' : 'do not settle the question'}.`, 'Second-order test', { x: [...x], f: F(x), grad: fin, gradNorm: norm(fin) }, converged ? 'optimal' : 'iteration-limit');
   return { x, f: F(x), converged, iterations: it, gradientText: g.map(gi => exprToString(gi, names)), hessianText: H.map(r => r.map(e => exprToString(e, names))), classification: cls, eigenvalues: eig, steps, diagnostics, evaluate: F };
@@ -285,6 +312,12 @@ export function checkKKT(input: KKTInput): KKTResult {
   const names = input.varNames ?? Array.from({ length: n }, (_, i) => `x${i + 1}`);
   const tol = input.tol ?? 1e-6;
   const bad = (error: string): KKTResult => ({ error, feasible: false, active: [], multipliers: null, stationarityResidual: NaN, dualFeasible: false, complementary: false, satisfied: false, messages: [], gradients: [] });
+  if (n < 1) return bad('Enter the point to test.');
+  if (n > MAX_NLP_VARIABLES) return bad(`At most ${MAX_NLP_VARIABLES} variables are supported.`);
+  if (names.length !== n) return bad(`The point has ${n} coordinates but there are ${names.length} variable names.`);
+  if (!input.point.every(Number.isFinite)) return bad('Every coordinate of the point must be a finite number.');
+  if (input.constraints.length > 50) return bad('At most 50 constraints are supported.');
+  if (!(Number.isFinite(tol) && tol > 0)) return bad('The tolerance must be a positive number.');
   let f: Expr; let gs: { e: Expr; kind: 'le' | 'eq' }[];
   try { f = parseExpression(input.objective, names); gs = input.constraints.map(c => ({ e: parseExpression(c.expr, names), kind: c.kind })); } catch (e) { return bad((e as Error).message); }
   const x = input.point;
@@ -295,16 +328,41 @@ export function checkKKT(input: KKTInput): KKTResult {
   messages.push(feasible ? 'Primal feasibility holds.' : `Primal feasibility FAILS: ${gs.map((g, i) => (g.kind === 'le' ? vals[i]! > tol : Math.abs(vals[i]!) > tol) ? `constraint ${i + 1} ${Number.isFinite(vals[i]!) ? '= ' + Number(vals[i]!.toFixed(6)) : 'is not a finite number here (division by zero or log of a non-positive value?)'}` : '').filter(Boolean).join(', ')}.`);
   const active = gs.map((g, i) => (g.kind === 'eq' || Math.abs(vals[i]!) <= tol ? i : -1)).filter(i => i >= 0);
   const J = active.map(i => names.map((_, k) => evalExpr(diff(gs[i]!.e, k), x)));
-  // solve ∇f + Σ λ_i ∇g_i = 0 by least squares (normal equations)
+  // multipliers: ∇f + Σ λ_i ∇g_i = 0 with λ ≥ 0 on the inequalities. The constrained least-squares problem is solved exactly by
+  // trying every choice of which active inequalities may carry a positive multiplier (the others are fixed at 0);
+  // a ridge keeps duplicated or proportional constraints (LICQ failure) from making the system singular.
+  const m = active.length;
+  const lsq = (cols: number[]): { lam: number[]; res: number } => {
+    const A = cols.map(a => cols.map(b => J[a]!.reduce((s, v, k) => s + v * J[b]![k]!, 0) + (a === b ? 1e-10 : 0)));
+    const rhs = cols.map(a => -J[a]!.reduce((s, v, k) => s + v * gradF[k]!, 0));
+    const sol = cols.length ? solve2(A, rhs) : [];
+    const lam = Array(m).fill(0) as number[];
+    cols.forEach((a, q) => (lam[a] = sol ? sol[q]! : 0));
+    const res = Math.sqrt(gradF.reduce((s, v, k) => { const t = v + lam.reduce((q2, l, a) => q2 + l * J[a]![k]!, 0); return s + t * t; }, 0));
+    return { lam, res: sol ? res : NaN };
+  };
   let lam: number[] | null = [];
   let residual = Math.sqrt(gradF.reduce((s, v) => s + v * v, 0));
-  if (active.length) {
-    const m = active.length;
-    const A = Array.from({ length: m }, (_, a) => Array.from({ length: m }, (_, b) => J[a]!.reduce((s, v, k) => s + v * J[b]![k]!, 0)));
-    const rhs = Array.from({ length: m }, (_, a) => -J[a]!.reduce((s, v, k) => s + v * gradF[k]!, 0));
-    lam = solve2(A, rhs);
-    if (lam) residual = Math.sqrt(gradF.reduce((s, v, k) => { const t = v + lam!.reduce((q, l, a) => q + l * J[a]![k]!, 0); return s + t * t; }, 0));
-    else messages.push('Active constraint gradients are linearly dependent (LICQ fails), so multipliers are not unique.');
+  let lsLam: number[] | null = null;
+  if (m) {
+    const eqCols = active.map((i, a) => (gs[i]!.kind === 'eq' ? a : -1)).filter(a => a >= 0);
+    const ineqCols = active.map((i, a) => (gs[i]!.kind === 'le' ? a : -1)).filter(a => a >= 0);
+    const full = lsq(active.map((_, a) => a));
+    lsLam = full.res === full.res ? full.lam : null;
+    if (ineqCols.length <= 12) {
+      let best: { lam: number[]; res: number } | null = null;
+      for (let mask = 0; mask < 1 << ineqCols.length; mask++) {
+        const cols = [...eqCols, ...ineqCols.filter((_, q) => mask & (1 << q))];
+        const cand = lsq(cols);
+        if (!(cand.res === cand.res)) continue;
+        if (!ineqCols.every(a => cand.lam[a]! >= -1e-9)) continue;
+        if (!best || cand.res < best.res - 1e-12) best = cand;
+      }
+      if (best) { lam = best.lam; residual = best.res; }
+      else { lam = null; messages.push('Active constraint gradients are linearly dependent (LICQ fails), so multipliers are not unique.'); }
+    } else if (lsLam) { lam = lsLam; residual = full.res; } else { lam = null; messages.push('Active constraint gradients are linearly dependent (LICQ fails), so multipliers are not unique.'); }
+    // when no sign-feasible multipliers reproduce the gradient but unrestricted ones do, the failure is the sign (dual feasibility)
+    if (lam && residual > 1e-5 && lsLam && full.res <= 1e-5) { lam = lsLam; residual = full.res; }
   }
   const stat = residual <= 1e-5;
   messages.push(stat ? 'Stationarity ∇f + Σλᵢ∇gᵢ = 0 holds.' : `Stationarity FAILS: residual ‖∇f + Σλᵢ∇gᵢ‖ = ${Number(residual.toPrecision(3))}.`);
@@ -354,12 +412,22 @@ function solveRational(A: Rational[][], b: Rational[]): Rational[] | null {
   return M.map(r => r[n]!);
 }
 
-export function solveQP(model: QPModel): QPResult {
+export function solveQP(input: QPModel): QPResult { return solveQPCore(input, false); }
+
+/** `homogeneous` is set for the internal recession-direction search, which must not recurse and has no size limits of its own. */
+function solveQPCore(input: QPModel, homogeneous: boolean): QPResult {
+  let model = input;
   const n = model.c.length;
   const m = model.A.length;
   const names = model.varNames ?? Array.from({ length: n }, (_, i) => `x${i + 1}`);
   const fail = (error: string): QPResult => ({ error, x: [], objective: Rational.ZERO, multipliers: [], boundMultipliers: [], activeSet: [], convex: false, examined: 0, explanation: '' });
-  if (n > 6 || m > 8) return fail('The exact active-set solver handles up to 6 variables and 8 constraints.');
+  if (n < 1) return fail('Enter at least one variable.');
+  if (!homogeneous && (n > 6 || m > 8)) return fail('The exact active-set solver handles up to 6 variables and 8 constraints.');
+  if (model.Q.length !== n || model.Q.some(r => r.length !== n)) return fail(`The Q matrix must be ${n} × ${n} (one row and column per variable).`);
+  if (model.b.length !== m || model.A.some(r => r.length !== n)) return fail(`Every constraint needs ${n} coefficients and a right-hand side.`);
+  // xᵀQx only sees the symmetric part of Q; work with it so the KKT conditions Qx + c + … = 0 are correct
+  const Qs = model.Q.map((r, i) => r.map((v, j) => v.add(model.Q[j]![i]!).div(Rational.of(2))));
+  model = { ...model, Q: Qs };
   // convexity: all principal minors ≥ 0 (PSD) via LDLᵀ-style check on eigen-free test: Sylvester on all principal minors
   const det = (M: Rational[][]): Rational => { const k = M.length; if (k === 0) return Rational.ONE; if (k === 1) return M[0]![0]!; let d = Rational.ZERO; for (let j = 0; j < k; j++) { const minor = M.slice(1).map(r => r.filter((_, c) => c !== j)); const term = M[0]![j]!.mul(det(minor)); d = j % 2 === 0 ? d.add(term) : d.sub(term); } return d; };
   let convex = true;
@@ -368,7 +436,7 @@ export function solveQP(model: QPModel): QPResult {
   for (const s of subsets(idx)) if (s.length && det(s.map(i => s.map(j => model.Q[i]![j]!))).isNegative()) { convex = false; break; }
   // enumerate active sets over constraints (m rows + n bounds)
   const total = m + n;
-  let best: { x: Rational[]; obj: Rational; lam: Rational[] } | null = null;
+  let best: { x: Rational[]; obj: Rational; lam: Rational[]; act: number[] } | null = null;
   let examined = 0;
   for (let mask = 0; mask < 1 << total; mask++) {
     const act: number[] = [];
@@ -392,13 +460,40 @@ export function solveQP(model: QPModel): QPResult {
     if (!feas) continue;
     let obj = Rational.ZERO;
     for (let i = 0; i < n; i++) { obj = obj.add(model.c[i]!.mul(x[i]!)); for (let j = 0; j < n; j++) obj = obj.add(Rational.of(1, 2).mul(x[i]!.mul(model.Q[i]![j]!).mul(x[j]!))); }
-    if (!best || obj.lt(best.obj)) best = { x, obj, lam: mu.length ? mu : [] };
+    if (!best || obj.lt(best.obj)) best = { x, obj, lam: mu, act };
     if (convex) { /* KKT point of a convex QP is global: first hit suffices */ break; }
   }
-  if (!best) return { ...fail(convex ? 'No KKT point found: the constraints are infeasible or the objective is unbounded below.' : 'No KKT point found (non-convex problem).'), convex };
+  if (!best) {
+    // a polyhedron {x ≥ 0, Ax ≤ b} has a vertex iff it is non-empty, so a vertex search separates "infeasible" from "unbounded"
+    let feasible = false;
+    for (let mask = 0; mask < 1 << total && !feasible; mask++) {
+      const act: number[] = [];
+      for (let k = 0; k < total; k++) if (mask & (1 << k)) act.push(k);
+      if (act.length !== n) continue;
+      const rows = act.map(k => (k < m ? model.A[k]! : idx.map(j => (j === k - m ? Rational.MINUS_ONE : Rational.ZERO))));
+      const rhsV = act.map(k => (k < m ? model.b[k]! : Rational.ZERO));
+      const v = solveRational(rows, rhsV);
+      if (!v || v.some(x => x.isNegative())) continue;
+      if (model.A.every((row, i) => row.reduce((s, c, j) => s.add(c.mul(v[j]!)), Rational.ZERO).lte(model.b[i]!))) feasible = true;
+    }
+    if (!n) feasible = true;
+    return { ...fail(feasible
+      ? `The objective is unbounded below on the feasible region${convex ? '' : ' (the objective is not convex)'}: no minimum exists.`
+      : 'The problem is infeasible: no point satisfies every constraint together with x ≥ 0.'), convex };
+  }
+  if (!convex && !homogeneous) {
+    // a non-convex objective can still fall without limit along a recession direction d (d ≥ 0, A d ≤ 0, dᵀQd < 0) even though KKT points exist;
+    // minimise ½dᵀQd over the normalised cone {Σd = 1} (a bounded problem, so its best KKT point is its global minimum)
+    const ones = Array(n).fill(Rational.ONE) as Rational[];
+    const cone = solveQPCore({ Q: model.Q, c: Array(n).fill(Rational.ZERO) as Rational[], A: [...model.A, ones, ones.map(v => v.neg())], b: [...(Array(m).fill(Rational.ZERO) as Rational[]), Rational.ONE, Rational.MINUS_ONE] }, true);
+    if (!cone.error && cone.objective.isNegative()) {
+      return { ...fail(`The objective is unbounded below on the feasible region (it is not convex and decreases without limit along the direction (${cone.x.map(v => v.toString()).join(', ')})): no minimum exists.`), convex };
+    }
+  }
   // recover which constraints are active
   const actNames: string[] = [];
-  const mults = Array(m).fill(Rational.ZERO), bm = Array(n).fill(Rational.ZERO);
+  const mults: Rational[] = Array(m).fill(Rational.ZERO), bm: Rational[] = Array(n).fill(Rational.ZERO);
+  best.act.forEach((k, a) => { if (k < m) mults[k] = best!.lam[a]!; else bm[k - m] = best!.lam[a]!; });
   {
     // recompute active set from best.x
     for (let i = 0; i < m; i++) { const lhs = model.A[i]!.reduce((s, v, j) => s.add(v.mul(best!.x[j]!)), Rational.ZERO); if (lhs.eq(model.b[i]!)) actNames.push(`constraint ${i + 1}`); }

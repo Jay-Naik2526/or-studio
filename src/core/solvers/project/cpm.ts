@@ -108,6 +108,12 @@ export class ProjectSolver implements Solver<ProjectModel, ProjectState, Project
     // durations / variances
     const dur = new Map<string, Rational>();
     const variance = new Map<string, Rational>();
+    const ok = (x: number | undefined) => x === undefined || (Number.isFinite(x) && Math.abs(x) <= 1e12);
+    for (const a of acts) {
+      if (![a.duration, a.optimistic, a.mostLikely, a.pessimistic].every(ok)) return fail(`Activity ${a.id}: durations must be finite numbers.`, 'NO_DURATION');
+      if (isPERT && [a.optimistic, a.mostLikely, a.pessimistic].some(x => x !== undefined && x < 0)) return fail(`Activity ${a.id}: PERT estimates cannot be negative.`, 'BAD_ESTIMATES');
+    }
+    if (!ok(model.deadline)) return fail('The deadline must be a finite number.', 'BAD_DEADLINE');
     for (const a of acts) {
       if (isPERT && a.optimistic !== undefined && a.mostLikely !== undefined && a.pessimistic !== undefined) {
         if (a.optimistic > a.mostLikely || a.mostLikely > a.pessimistic) return fail(`Activity ${a.id}: estimates must satisfy optimistic ≤ most likely ≤ pessimistic.`, 'BAD_ESTIMATES');

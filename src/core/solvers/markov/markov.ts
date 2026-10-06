@@ -81,6 +81,50 @@ export function validateTransitionMatrix(P: Rational[][]): string | null {
   return null;
 }
 
+/** Largest numerator/denominator size (in bits) accepted per probability; keeps the exact analysis fast. */
+export const MAX_ENTRY_BITS = 600;
+/** Budget for (bits of the common denominator) × (number of steps): bounds the size of the exact n-step numbers. */
+export const MAX_POWER_BITS = 40000;
+/** Largest (bits² · states · steps) for which the whole exact trajectory is computed (about two seconds). */
+const MAX_EXACT_TRAJECTORY_COST = 2e11;
+
+const bitLength = (x: bigint) => (x < 0n ? -x : x).toString(2).length;
+const lcm = (a: bigint, b: bigint) => { let x = a, y = b; while (y) [x, y] = [y, x % y]; return (a / x) * b; };
+const commonDenominator = (xs: Rational[]) => xs.reduce((acc, e) => lcm(acc, e.d), 1n);
+
+/** Distributions v₀…v_k (v_{j+1} = v_j P) in exact arithmetic without a gcd per step: integers over D_v·D^j, reduced once per output. */
+function exactTrajectory(v0: Rational[], P: Rational[][], k: number): Rational[][] {
+  const n = P.length;
+  const D = commonDenominator(P.flat());
+  const M = P.map(r => r.map(e => e.n * (D / e.d)));
+  const Dv = commonDenominator(v0);
+  let v = v0.map(e => e.n * (Dv / e.d));
+  let den = Dv;
+  const out: Rational[][] = [v0];
+  for (let step = 1; step <= k; step++) {
+    v = Array.from({ length: n }, (_, j) => v.reduce((acc, x, i) => acc + x * M[i]![j]!, 0n));
+    den *= D;
+    out.push(v.map(x => Rational.of(x, den)));
+  }
+  return out;
+}
+
+/** Pᵏ in exact arithmetic: integer matrix power (square-and-multiply) over D^k, reduced once at the end (k ≥ 0). */
+function exactPower(P: Rational[][], k: number): Rational[][] {
+  const n = P.length;
+  if (k === 0) return P.map((r, i) => r.map((_, j) => (i === j ? Rational.ONE : Rational.ZERO)));
+  const D = commonDenominator(P.flat());
+  const mul = (X: bigint[][], Y: bigint[][]) => X.map(row => Array.from({ length: n }, (_, j) => row.reduce((acc, x, i) => acc + x * Y[i]![j]!, 0n)));
+  let base = P.map(r => r.map(e => e.n * (D / e.d)));
+  let R: bigint[][] | null = null;
+  for (let e = k; e > 0; e >>= 1) {
+    if (e & 1) R = R ? mul(R, base) : base;
+    if (e > 1) base = mul(base, base);
+  }
+  const den = D ** BigInt(k);
+  return R!.map(row => row.map(x => Rational.of(x, den)));
+}
+
 export function solveMarkovChain(model: MarkovModel, targetSteps = 5): MarkovResult {
   const P = model.transitionMatrix;
   const n = P.length;
@@ -92,19 +136,36 @@ export function solveMarkovChain(model: MarkovModel, targetSteps = 5): MarkovRes
 
   // n-step (exact rational powers: the digit count grows with every multiplication, so the horizon is bounded)
   if (!Number.isInteger(targetSteps) || targetSteps < 0 || targetSteps > 500) return { ...base, error: 'The number of steps n must be a whole number between 0 and 500.' };
-  let Pn = P.map(r => [...r]);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const e = P[i]![j]!; if (bitLength(e.n) > MAX_ENTRY_BITS || bitLength(e.d) > MAX_ENTRY_BITS) return { ...base, error: `The probability in row ${i + 1}, column ${j + 1} has too many digits (limit about ${Math.floor(MAX_ENTRY_BITS * 0.30103)} digits in numerator or denominator): use a simpler decimal or fraction.` }; }
+  if (bitLength(commonDenominator(P.flat())) * Math.max(1, targetSteps) > MAX_POWER_BITS) return { ...base, error: 'The exact n-step probabilities would need numbers with thousands of digits (the probabilities have too many digits for this many steps). Use fewer steps or simpler probabilities.' };
   const traj: Rational[][] = [];
   const init = model.initialDistribution && model.initialDistribution.length === n ? model.initialDistribution : null;
   if (init) {
     const sum = init.reduce((a, b) => a.add(b), Rational.ZERO);
     if (!sum.eq(Rational.ONE) || init.some(x => x.isNegative())) return { ...base, error: `The initial distribution must be non-negative and sum to 1 (it sums to ${sum.toString()}).` };
   }
-  const step = (d: Rational[]) => d.map((_, j) => d.reduce((s, x, i) => s.add(x.mul(P[i]![j]!)), Rational.ZERO));
-  if (init) { let d = init; traj.push(d); for (let k = 1; k <= Math.max(targetSteps, 1); k++) { d = step(d); traj.push(d); } }
-  for (let k = 2; k <= targetSteps; k++) Pn = Matrix.multiply(Pn, P);
-  base.nStep = { n: targetSteps, matrix: Pn, distribution: init ? traj[targetSteps] : undefined };
+  const Pn = exactPower(P, targetSteps);
+  let finalDistribution: Rational[] | undefined;
+  if (init) {
+    finalDistribution = init.map((_, j) => init.reduce((acc, x, i) => acc.add(x.mul(Pn[i]![j]!)), Rational.ZERO));
+    // the exact distributions v₀…v_n cost about (digits)²·n² to reduce; beyond that budget the chart uses 15-digit decimal values instead
+    const horizon = Math.max(targetSteps, 1);
+    const bits = bitLength(commonDenominator(init)) + bitLength(commonDenominator(P.flat())) * horizon;
+    if (bits * bits * n * horizon <= MAX_EXACT_TRAJECTORY_COST) traj.push(...exactTrajectory(init, P, horizon));
+    else {
+      const Pf = P.map(r => r.map(e => Number(e.n) / Number(e.d)));
+      let v = init.map(e => Number(e.n) / Number(e.d));
+      traj.push(init);
+      for (let k = 1; k <= horizon; k++) {
+        v = v.map((_, j) => Pf.reduce((acc, row, i) => acc + v[i]! * row[j]!, 0));
+        traj.push(v.map(x => Rational.parse((Number.isFinite(x) && x > 0 ? x : 0).toPrecision(15))));
+      }
+      base.diagnostics.push({ severity: 'info', code: 'TRAJECTORY_APPROXIMATE', message: 'The probabilities have so many digits that the step-by-step distributions in the chart are shown as 15-digit decimals; the n-step matrix, the final distribution and every other result are exact.' });
+    }
+  }
+  base.nStep = { n: targetSteps, matrix: Pn, distribution: finalDistribution };
   base.trajectory = init ? traj : undefined;
-  steps.push({ stepNumber: 1, title: `P^${targetSteps}`, explanation: `Entry (i,j) of Pⁿ is the probability of being in state j after n = ${targetSteps} steps starting from state i, computed by repeated matrix multiplication.`, matrixData: Pn, vectorData: init ? traj[targetSteps] : undefined });
+  steps.push({ stepNumber: 1, title: `P^${targetSteps}`, explanation: `Entry (i,j) of Pⁿ is the probability of being in state j after n = ${targetSteps} steps starting from state i, computed by repeated matrix multiplication.`, matrixData: Pn, vectorData: finalDistribution });
 
   // reachability & classes
   const reach: boolean[][] = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => i === j || !P[i]![j]!.isZero()));

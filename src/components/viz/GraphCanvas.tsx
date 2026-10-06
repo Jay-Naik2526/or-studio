@@ -100,8 +100,8 @@ export function GraphCanvas({ spec, onChange, tool = 'select', state, highlights
             <path d={p.d} fill="none" stroke="transparent" strokeWidth="14" />
             <path d={p.d} fill="none" stroke={color} strokeWidth={w} strokeDasharray={isRej || isCut ? '6 4' : undefined} markerEnd={e.directed ? 'url(#arr)' : undefined} />
             <g transform={`translate(${p.lx} ${p.ly})`}>
-              <rect x={-Math.max(10, label.length * 3.6 + 4)} y="-8" width={Math.max(20, label.length * 7.2 + 8)} height="16" rx="2" fill="var(--surface)" stroke={color} strokeWidth="1" />
-              <text textAnchor="middle" y="4" fontSize="11" className="mono" fontWeight="700" fill="var(--text)">{label}</text>
+              <rect x={-Math.max(11, label.length * 4.3 + 5)} y="-10" width={Math.max(22, label.length * 8.6 + 10)} height="20" rx="2" fill="var(--surface)" stroke={color} strokeWidth="1" />
+              <text textAnchor="middle" y="5" fontSize="13.5" className="mono" fontWeight="700" fill="var(--text)">{label}</text>
             </g>
           </g>
         );
@@ -118,11 +118,11 @@ export function GraphCanvas({ spec, onChange, tool = 'select', state, highlights
           <g key={n.id} data-node transform={`translate(${n.x} ${n.y})`} onPointerDown={e => nodeDown(e, n.id)} style={{ cursor: editable ? (tool === 'select' ? 'grab' : 'pointer') : 'default' }} tabIndex={editable ? 0 : -1} role="img" aria-label={`Node ${n.label}${isSrc ? ' source' : ''}${isSnk ? ' sink' : ''}${lab?.value ? `, label ${lab.value.toString()}` : ''}`}>
             <circle r={R} fill={fill} stroke={stroke} strokeWidth={inPath || perm || from === n.id ? 3 : 1.8} />
             {isSnk && <circle r={R - 4} fill="none" stroke={stroke} strokeWidth="1.2" />}
-            <text textAnchor="middle" y="4" fontSize="13" fontWeight="800" fill="var(--text)">{n.label}</text>
-            {isSrc && <text y={-R - 5} textAnchor="middle" fontSize="10" fontWeight="800" fill="var(--entering)">SOURCE</text>}
-            {isSnk && <text y={-R - 5} textAnchor="middle" fontSize="10" fontWeight="800" fill="var(--entering)">SINK</text>}
+            <text textAnchor="middle" y="5" fontSize="15" fontWeight="800" fill="var(--text)">{n.label}</text>
+            {isSrc && <text y={-R - 5} textAnchor="middle" fontSize="11.5" fontWeight="800" fill="var(--entering)">SOURCE</text>}
+            {isSnk && <text y={-R - 5} textAnchor="middle" fontSize="11.5" fontWeight="800" fill="var(--entering)">SINK</text>}
             {lab && lab.value !== undefined && (
-              <g transform={`translate(0 ${R + 13})`}><rect x="-16" y="-10" width="32" height="15" rx="2" fill="var(--surface)" stroke={perm ? 'var(--ok)' : 'var(--border-strong)'} /><text textAnchor="middle" fontSize="10.5" className="mono" fontWeight="700" fill="var(--text)" y="1">{lab.value === null ? '∞' : lab.value.toString()}{perm ? '■' : ''}</text></g>
+              <g transform={`translate(0 ${R + 13})`}><rect x="-18" y="-11" width="36" height="17" rx="2" fill="var(--surface)" stroke={perm ? 'var(--ok)' : 'var(--border-strong)'} /><text textAnchor="middle" fontSize="12.5" className="mono" fontWeight="700" fill="var(--text)" y="2">{lab.value === null ? '∞' : lab.value.toString()}{perm ? '■' : ''}</text></g>
             )}
           </g>
         );

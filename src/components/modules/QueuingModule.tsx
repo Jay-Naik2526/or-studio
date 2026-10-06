@@ -22,7 +22,13 @@ function toInput(s: QueueSpec): { input: QueueInput | null; error: string | null
   const lambda = plainNum(s.lambda), mu = plainNum(s.mu);
   if (lambda === null) return { input: null, error: 'Enter the arrival rate λ as a number.' };
   if (mu === null) return { input: null, error: 'Enter the service rate μ as a number.' };
-  const servers = s.model === 'mm1' || s.model === 'mm1n' || s.model === 'mg1' ? 1 : Math.max(1, Math.floor(plainNum(s.servers) ?? 1));
+  const single = s.model === 'mm1' || s.model === 'mm1n' || s.model === 'mg1';
+  const serversRaw = single ? 1 : plainNum(s.servers);
+  if (serversRaw === null) return { input: null, error: 'Enter the number of servers c as a whole number.' };
+  if (!Number.isInteger(serversRaw) || serversRaw < 1) return { input: null, error: `The number of servers must be a whole number of at least 1 (you entered ${serversRaw}).` };
+  const servers = serversRaw;
+  if (s.model === 'mg1' && s.sigma.trim() !== '' && plainNum(s.sigma) === null) return { input: null, error: 'The service-time standard deviation σ must be a number (or leave it empty for σ = 1/μ).' };
+  for (const [label, v] of [['Cost per server', s.Cs], ['Waiting cost', s.Cw]] as const) if (v.trim() !== '' && plainNum(v) === null) return { input: null, error: `${label}: “${v.length > 24 ? v.slice(0, 24) + '…' : v}” is not a number (or leave it empty).` };
   const cap = s.capacity.trim() === '' ? undefined : plainNum(s.capacity) ?? undefined;
   if ((s.model === 'mm1n' || s.model === 'mmcn' || s.model === 'mmcnn') && cap === undefined) return { input: null, error: s.model === 'mmcnn' ? 'Enter the number of machines K.' : 'Enter the system capacity N.' };
   const sigma = s.sigma.trim() === '' ? undefined : plainNum(s.sigma) ?? undefined;
@@ -58,7 +64,7 @@ export default function QueuingModule() {
     const v = plainNum(spec[key]) ?? min;
     return (
       <div className="flex flex-col gap-1">
-        <div className="flex justify-between text-[0.9rem]"><label htmlFor={`sl-${key}`} className="font-semibold">{label}</label><span className="mono font-bold">{spec[key]}</span></div>
+        <div className="flex justify-between text-[0.9rem]"><label htmlFor={`sl-${key}`} className="font-semibold">{label}</label><span className="mono font-bold">{plainNum(spec[key]) === null ? '—' : spec[key]}</span></div>
         <input id={`sl-${key}`} className="range" type="range" min={min} max={max} step={step} value={Math.min(max, Math.max(min, v))} onChange={e => set({ [key]: String(Number(e.target.value)) } as Partial<QueueSpec>)} />
       </div>
     );
@@ -98,7 +104,7 @@ export default function QueuingModule() {
   return (
     <WorkspaceFrame
       moduleId="queuing" title="Queuing analysis" accent="#2563eb" subtitle="Live λ / μ / c sliders · performance measures · cost-optimal servers"
-      variants={MODELS} variant={spec.model} onVariant={v => set({ model: v })}
+      variants={MODELS} variant={spec.model} onVariant={v => set({ model: v, ...((v === 'mm1n' || v === 'mmcn' || v === 'mmcnn') && spec.capacity.trim() === '' ? { capacity: '10' } : {}) })}
       input={<>
         <Card title="Parameters"><div className="flex flex-col gap-4">
           <label className="flex items-center gap-2 text-[0.9rem]">Example<select className="select" value="" aria-label="Load an example" onChange={e => { const x = libraryFor('queuing')[Number(e.target.value)]; if (x) setSpec(structuredClone(x.spec) as QueueSpec); }}><option value="" disabled>Choose…</option>{libraryFor('queuing').map((x, i) => <option key={x.id} value={i}>{x.title}</option>)}</select></label>

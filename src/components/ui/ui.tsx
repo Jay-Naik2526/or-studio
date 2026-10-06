@@ -35,10 +35,22 @@ export function Callout({ kind = 'info', children, title }: { kind?: 'ok' | 'bad
 }
 
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode; title?: string }[]; label: string }) {
+  // radio-group keyboard model: one tab stop (the checked option); arrows move and select
+  const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+    if (!dir && e.key !== 'Home' && e.key !== 'End') return;
+    const i = options.findIndex(o => o.value === value);
+    const n = e.key === 'Home' ? 0 : e.key === 'End' ? options.length - 1 : (i + dir + options.length) % options.length;
+    const next = options[n];
+    if (!next) return;
+    e.preventDefault();
+    onChange(next.value);
+    (e.currentTarget.querySelectorAll<HTMLElement>('[role=radio]')[n])?.focus();
+  };
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex max-w-full overflow-x-auto" style={{ border: '1px solid var(--accent-edge)', background: 'var(--surface)' }}>
+    <div role="radiogroup" aria-label={label} onKeyDown={onKey} className="inline-flex max-w-full overflow-x-auto" style={{ border: '1px solid var(--accent-edge)', background: 'var(--surface)' }}>
       {options.map((o, i) => (
-        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} title={o.title} onClick={() => onChange(o.value)}
+        <button key={o.value} type="button" role="radio" aria-checked={value === o.value} tabIndex={(options.some(x => x.value === value) ? value === o.value : i === 0) ? 0 : -1} title={o.title} onClick={() => onChange(o.value)}
           className="px-3 py-1.5 text-[0.84rem] font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-colors hover:bg-[var(--surface-3)]"
           style={{ borderLeft: i ? '1px solid var(--border-strong)' : 'none', ...(value === o.value ? { background: 'var(--accent)', color: 'var(--on-accent)', fontWeight: 700 } : { color: 'var(--text-2)' }) }}>
           {o.label}
@@ -63,7 +75,7 @@ export function Collapsible({ title, children, defaultOpen = false, right }: { t
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="card">
-      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="card-h w-full cursor-pointer text-left" style={{ borderBottom: open ? undefined : 'none' }}>
+      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="card-h w-full cursor-pointer text-left tt" style={{ borderBottom: open ? undefined : 'none' }}>
         <span className="inline-flex items-center gap-2">{open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}{title}</span>
         {right}
       </button>
@@ -82,7 +94,7 @@ export function DiagnosticsList({ items, title = 'Diagnostics' }: { items: Diagn
         {sorted.map((d, i) => (
           <li key={i}>
             <div className={`callout callout-${d.severity === 'error' ? 'bad' : d.severity === 'warning' ? 'warn' : 'info'}`}>
-              {d.severity === 'error' ? <XCircle size={15} className="shrink-0 mt-0.5" aria-label="error" /> : d.severity === 'warning' ? <AlertTriangle size={15} className="shrink-0 mt-0.5" aria-label="warning" /> : <Info size={15} className="shrink-0 mt-0.5" aria-label="note" />}
+              {d.severity === 'error' ? <XCircle size={15} className="shrink-0 mt-0.5" role="img" aria-label="error" /> : d.severity === 'warning' ? <AlertTriangle size={15} className="shrink-0 mt-0.5" role="img" aria-label="warning" /> : <Info size={15} className="shrink-0 mt-0.5" role="img" aria-label="note" />}
               <div>
                 <span className="mono text-[12px] font-bold mr-2 opacity-70">{d.code}</span>
                 {d.message}

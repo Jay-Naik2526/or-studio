@@ -94,12 +94,12 @@ export function Hub() {
                 const m = MODULES.find(x => x.id === id)!;
                 return (
                   <li key={m.id} className="flex">
-                    <a href={href(`/m/${m.id}`)} className="tile w-full">
+                    <a href={href(`/m/${m.id}`)} className="tile w-full" aria-labelledby={`tile-${m.id}`}>
                       <div className="flex items-center justify-between">
                         <span className="code">{m.short}</span>
                         <ArrowUpRight size={17} className="muted" aria-hidden="true" />
                       </div>
-                      <h3 className="text-[1.2rem] font-bold leading-tight">{m.name}</h3>
+                      <h3 id={`tile-${m.id}`} className="text-[1.2rem] font-bold leading-tight">{m.name}</h3>
                       <p className="text-[0.93rem] leading-relaxed flex-1" style={{ color: 'var(--text-2)' }}>{m.description}</p>
                       <div className="flex flex-wrap gap-1.5 pt-1">{m.methods.slice(0, 4).map(x => <span key={x} className="badge">{x}</span>)}</div>
                       <p className="text-[0.82rem] muted pt-2" style={{ borderTop: '1px dashed var(--border-strong)' }}><b className="mono text-[0.74rem] uppercase tracking-wider" style={{ color: 'var(--text-2)' }}>Beyond TORA</b> · {m.beyondTora}</p>

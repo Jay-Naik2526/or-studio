@@ -39,8 +39,12 @@ export interface MonteCarloResult {
 export function runMonteCarlo(input: MonteCarloInput): MonteCarloResult {
   const empty = { generator: '', seed: input.seed, n: 0, mean: 0, stdDev: 0, stdError: 0, ci95: [0, 0] as [number, number], min: 0, max: 0, median: 0, percentiles: [], histogram: [], convergence: [], samples: [] };
   if (!(input.trials >= 1) || input.trials > 2_000_000) return { ...empty, error: 'The number of trials must be between 1 and 2,000,000.' };
+  if (input.threshold !== undefined && !Number.isFinite(input.threshold)) return { ...empty, error: 'The threshold must be a finite number (or left empty).' };
+  const names = new Set<string>();
   for (const v of input.variables) {
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(v.name)) return { ...empty, error: `"${v.name}" is not a valid variable name.` };
+    if (names.has(v.name)) return { ...empty, error: `The variable name "${v.name}" is used more than once; give every variable its own name.` };
+    names.add(v.name);
     const e = validateDistribution(v.dist);
     if (e) return { ...empty, error: `${v.name}: ${e}` };
   }
@@ -49,31 +53,36 @@ export function runMonteCarlo(input: MonteCarloInput): MonteCarloResult {
   const rng = makeRng(input.generator, input.seed);
   const n = Math.floor(input.trials);
   const xs: number[] = new Array(n);
-  let sum = 0, sumSq = 0;
+  // Welford's running mean and sum of squared deviations: the naive sum-of-squares formula loses every digit when the mean dwarfs the spread
+  let mu = 0, m2 = 0;
   const conv: MonteCarloResult['convergence'] = [];
   const every = Math.max(1, Math.floor(n / 100));
-  const env: Record<string, number> = {};
+  const env: Record<string, number> = Object.create(null);
   let atLeast = 0;
   for (let i = 0; i < n; i++) {
     for (const v of input.variables) env[v.name] = sample(v.dist, rng);
-    const y = fn(env);
+    let y: number;
+    try { y = fn(env); } catch { return { ...empty, error: 'The expression is too complex to evaluate; simplify it.' }; }
     if (!Number.isFinite(y)) return { ...empty, error: `The expression produced a non-finite value on trial ${i + 1} (check for division by zero or ln of a non-positive number).` };
     xs[i] = y;
-    sum += y; sumSq += y * y;
+    const delta = y - mu;
+    mu += delta / (i + 1);
+    m2 += delta * (y - mu);
     if (input.threshold !== undefined && y >= input.threshold) atLeast++;
     if ((i + 1) % every === 0 || i === n - 1) {
-      const k = i + 1, mu = sum / k, sd = Math.sqrt(Math.max(0, (sumSq - k * mu * mu) / Math.max(1, k - 1)));
-      const se = sd / Math.sqrt(k);
-      conv.push({ n: k, mean: mu, lo: mu - 1.96 * se, hi: mu + 1.96 * se });
+      const k = i + 1, sdk = Math.sqrt(Math.max(0, m2 / Math.max(1, k - 1)));
+      const sek = sdk / Math.sqrt(k);
+      conv.push({ n: k, mean: mu, lo: mu - 1.96 * sek, hi: mu + 1.96 * sek });
     }
   }
-  const mean = sum / n;
-  const sd = Math.sqrt(Math.max(0, (sumSq - n * mean * mean) / Math.max(1, n - 1)));
+  const mean = mu;
+  const sd = Math.sqrt(Math.max(0, m2 / Math.max(1, n - 1)));
   const se = sd / Math.sqrt(n);
   const sorted = [...xs].sort((a, b) => a - b);
+  if (![mean, sd, se, mean - 1.96 * se, mean + 1.96 * se, sorted[n - 1]! - sorted[0]!].every(Number.isFinite)) return { ...empty, error: 'The simulated values are so large that their statistics overflow the number range. Use more moderate values.' };
   const pct = (p: number) => sorted[Math.min(n - 1, Math.max(0, Math.floor((p / 100) * n)))]!;
   const lo = sorted[0]!, hi = sorted[n - 1]!;
-  const bins = Math.max(2, Math.min(60, input.bins ?? 20));
+  const bins = Math.max(2, Math.min(60, Math.floor(Number.isFinite(input.bins) ? input.bins! : 20)));
   const w = (hi - lo) / bins || 1;
   const hist = Array.from({ length: bins }, (_, b) => ({ from: lo + b * w, to: lo + (b + 1) * w, count: 0 }));
   for (const x of xs) hist[Math.min(bins - 1, Math.floor((x - lo) / w))]!.count++;
@@ -135,6 +144,7 @@ export function runQueueSimulation(input: QueueSimInput): QueueSimResult {
   for (let i = 1; i <= N; i++) {
     t += Math.max(0, sample(input.interarrival, rng));
     const s = Math.max(0, sample(input.service, rng));
+    if (!Number.isFinite(t) || !Number.isFinite(s) || !Number.isFinite(Math.max(t, free[0]!) + s)) return { ...blank, error: 'The simulated times grow beyond the number range. Use more moderate arrival and service times.' };
     let k = 0;
     for (let j = 1; j < c; j++) if (free[j]! < free[k]!) k = j;
     const start = Math.max(t, free[k]!);
@@ -164,16 +174,19 @@ export function runQueueSimulation(input: QueueSimInput): QueueSimResult {
   let acc = 0;
   const every = Math.max(1, Math.floor(use.length / 100));
   use.forEach((r, i) => { acc += r.wait; if ((i + 1) % every === 0) conv.push({ n: i + 1, avg: acc / (i + 1) }); });
+  const avgWait = use.reduce((s, r) => s + r.wait, 0) / use.length;
+  const avgSystemTime = use.reduce((s, r) => s + r.wait + r.service, 0) / use.length;
+  if (![avgWait, avgSystemTime, busy, areaQ, areaSys, dur].every(Number.isFinite)) return { ...blank, error: 'The simulated times are so large that the statistics overflow the number range. Use more moderate arrival and service times.' };
   const warnings: string[] = [];
   const meanIA = describeMean(input.interarrival), meanS = describeMean(input.service);
   if (meanIA !== null && meanS !== null && meanS / c >= meanIA) warnings.push(`The mean service time per server (${(meanS / c).toFixed(3)}) is not below the mean interarrival time (${meanIA.toFixed(3)}): the queue is unstable and waiting times will keep growing with the run length.`);
   if (warm === 0) warnings.push('No warm-up period was discarded; early customers see an empty system, which biases averages downward.');
   return {
     generator: rng.name, seed: input.seed, customers: recs, events,
-    avgWait: use.reduce((s, r) => s + r.wait, 0) / use.length,
-    avgSystemTime: use.reduce((s, r) => s + r.wait + r.service, 0) / use.length,
-    utilisation: busy / (c * dur),
-    avgQueueLength: areaQ / dur, avgInSystem: areaSys / dur, maxQueueLength: maxQ,
+    avgWait,
+    avgSystemTime,
+    utilisation: dur > 0 ? busy / (c * dur) : 0,
+    avgQueueLength: dur > 0 ? areaQ / dur : 0, avgInSystem: dur > 0 ? areaSys / dur : 0, maxQueueLength: maxQ,
     probWait: use.filter(r => r.wait > 1e-12).length / use.length,
     duration: dur, occupancy: occ, waitConvergence: conv, warnings,
   };

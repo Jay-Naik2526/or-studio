@@ -20,7 +20,10 @@
 
 import { Rational } from '../math/rational';
 import { LPModel, Constraint, Relation, VarType, Bound } from '../types/models';
-import { canonVarName, unsubscript } from '../format';
+import { canonVarName as baseCanonVarName, unsubscript } from '../format';
+
+/** "x_1", "x1" and "x₁" all name the same variable. */
+const canonVarName = (name: string): string => baseCanonVarName(name.replace(/^([A-Za-z])_(\d+)$/, '$1$2'));
 
 export interface ParseError {
   line: number;
@@ -137,7 +140,8 @@ function parseExpr(text: string, line: number, col0: number): LinearExpr {
     if (i < n && (text[i] === '*' || text[i] === '·' || text[i] === '×')) { i++; skipWs(); }
     const ident = readIdent();
     if (num === null && ident === null) {
-      throw new ParseFailure(line, col(startTerm), `Unexpected "${text[i]}" — expected a number or a variable name.`);
+      const bad = text[startTerm] ?? text[i] ?? '';
+      throw new ParseFailure(line, col(startTerm), `Unexpected "${bad}" — expected a number or a variable name.`);
     }
     if (ident !== null) {
       const lower = unsubscript(ident).toLowerCase();
@@ -187,7 +191,9 @@ export class AlgebraicParser {
 
   private static parseInner(input: string): ParseResult {
     const warnings: NonNullable<ParseResult['warnings']> = [];
+    if (input.length > 1_000_000) throw new ParseFailure(1, 1, 'The model text is too long (limit 1,000,000 characters).');
     const raw = input.replace(/\r/g, '').split('\n');
+    raw.forEach((ln, idx) => { if (ln.length > 200_000) throw new ParseFailure(idx + 1, 1, 'This line is too long (limit 200,000 characters).'); });
     const lines: LogicalLine[] = [];
     raw.forEach((ln, idx) => {
       let t = ln;
@@ -264,10 +270,10 @@ export class AlgebraicParser {
         }
         continue;
       }
-      const suffix = ln.text.match(/^(.*?)\s+(free|unrestricted|urs|integer|int|binary|bin)\s*$/i);
+      const suffix = /\s(free|unrestricted|urs|integer|int|binary|bin)$/i.exec(ln.text); // linear scan (no nested quantifiers)
       if (suffix && !REL_RE.test(ln.text)) {
-        const kind = suffix[2]!.toLowerCase();
-        for (const nm of splitNames(suffix[1]!)) {
+        const kind = suffix[1]!.toLowerCase();
+        for (const nm of splitNames(ln.text.slice(0, suffix.index))) {
           const c = canonVarName(nm);
           note(c);
           if (kind.startsWith('int')) intNames.add(c);
@@ -279,7 +285,7 @@ export class AlgebraicParser {
 
       // Optional label "name:" (but not keywords like st:)
       let label: string | undefined;
-      const lm = ln.text.match(/^([A-Za-z_][\w ]*?)\s*:\s*(.*)$/);
+      const lm = ln.text.match(/^([A-Za-z_][\w ]*):\s*(.*)$/);
       if (lm && !/^(st|s\.t\.|subject to)$/i.test(lm[1]!)) {
         label = lm[1]!.trim();
         ln = { text: lm[2]!, line: ln.line, col0: ln.col0 + (ln.text.length - lm[2]!.length) };
@@ -329,12 +335,19 @@ export class AlgebraicParser {
 
       const exprs = segs.map(s => parseExpr(s.text, ln.line, s.col));
       for (let k = 0; k < ops.length; k++) {
-        const L = exprs[k]!;
-        const R = exprs[k + 1]!;
+        let L = exprs[k]!;
+        let R = exprs[k + 1]!;
+        let opK = ops[k]!;
+        if (L.coeffs.size === 0 && R.coeffs.size > 0) {
+          // "1 <= x + y": read as "x + y >= 1" so the variables stay on the left.
+          [L, R] = [R, L];
+          const nr = normRel(opK);
+          opK = nr === '<=' ? '>=' : nr === '>=' ? '<=' : '=';
+        }
         // "x1 >= 0" / "0 <= x1": plain non-negativity declaration, not a constraint row.
         const single = (e: LinearExpr) => e.coeffs.size === 1 && e.constant.isZero() && [...e.coeffs.values()][0]!.eq(Rational.ONE);
         const zero = (e: LinearExpr) => e.coeffs.size === 0 && e.constant.isZero();
-        const rl = normRel(ops[k]!);
+        const rl = normRel(opK);
         if ((rl === '>=' && single(L) && zero(R)) || (rl === '<=' && zero(L) && single(R))) {
           const nm = [...(single(L) ? L : R).coeffs.keys()][0]!;
           note(nm);
@@ -346,7 +359,7 @@ export class AlgebraicParser {
         for (const [nm, v] of R.coeffs) coeffs.set(nm, (coeffs.get(nm) ?? Rational.ZERO).sub(v));
         const rhs = R.constant.sub(L.constant);
         for (const nm of coeffs.keys()) note(nm);
-        let relS = normRel(ops[k]!);
+        let relS = normRel(opK);
         // For chained forms the same expression is the middle term; relation direction is as written.
         const allZero = [...coeffs.values()].every(v => v.isZero());
         if (allZero) {
@@ -378,21 +391,22 @@ export class AlgebraicParser {
     const anyBin = binNames.size > 0;
     if (anyFree || anyBin) {
       model.varBounds = varNames.map((v): Bound => {
-        if (freeNames.has(v)) return { lower: null, upper: null };
         if (binNames.has(v)) return { lower: Rational.ZERO, upper: Rational.ONE };
+        if (freeNames.has(v)) return { lower: null, upper: null };
         return { lower: Rational.ZERO, upper: null };
       });
     }
     if (intNames.size > 0 || anyBin) {
       model.integrality = varNames.map((v): VarType => (binNames.has(v) ? 'binary' : intNames.has(v) ? 'integer' : 'continuous'));
     }
-    for (const f of freeNames) if (nonnegNames.has(f)) {
+    for (const f of freeNames) if (nonnegNames.has(f) && !binNames.has(f)) {
       warnings.push({ line: 1, col: 1, message: `${f} is declared both free and non-negative; free wins.` });
     }
     // variables that never appear in a constraint nor objective with a coefficient
-    for (const v of varNames) {
+    const usedInCon = varNames.map((_, k) => constraints.some(c => !c.coeffs[k]!.isZero()));
+    for (const [k, v] of varNames.entries()) {
       const inObj = !(objExpr.coeffs.get(v) ?? Rational.ZERO).isZero();
-      const inCon = constraints.some(c => !c.coeffs[varNames.indexOf(v)]!.isZero());
+      const inCon = usedInCon[k]!;
       if (!inObj && !inCon) warnings.push({ line: 1, col: 1, message: `Variable ${v} has no effect on the model.` });
     }
     return { success: true, model, warnings: warnings.length ? warnings : undefined };
@@ -422,23 +436,53 @@ export function formatLinear(coeffs: Rational[], names: string[]): string {
 
 export function formatLP(model: LPModel): string {
   const lines: string[] = [];
-  let obj = formatLinear(model.objective, model.varNames);
+  const names = model.varNames;
+  // Variables are numbered by first appearance when the text is parsed again; keep the order stable by naming every
+  // variable in the objective (with a 0 coefficient) whenever the natural order of appearance would differ.
+  const firstSeen: string[] = [];
+  const see = (j: number) => { if (!firstSeen.includes(names[j]!)) firstSeen.push(names[j]!); };
+  model.objective.forEach((c, j) => { if (!c.isZero()) see(j); });
+  model.constraints.forEach(c => c.coeffs.forEach((a, j) => { if (!a.isZero()) see(j); }));
+  const needsOrder = firstSeen.length !== names.length || firstSeen.some((nm, k) => nm !== names[k]);
+  let obj: string;
+  if (needsOrder) {
+    obj = names.map((nm, j) => {
+      const c = model.objective[j] ?? Rational.ZERO;
+      const mag = c.abs();
+      const body = c.isZero() ? `0${nm}` : mag.eq(Rational.ONE) ? nm : `${fmtCoef(mag)}${nm}`;
+      return { neg: c.isNegative(), body };
+    }).reduce((acc, t, k) => (k === 0 ? (t.neg ? `-${t.body}` : t.body) : `${acc} ${t.neg ? '-' : '+'} ${t.body}`), '');
+  } else {
+    obj = formatLinear(model.objective, names);
+  }
   if (model.objectiveConstant && !model.objectiveConstant.isZero()) {
     const k = model.objectiveConstant;
     obj += k.isNegative() ? ` - ${k.abs().toString()}` : ` + ${k.toString()}`;
   }
   lines.push(`${model.sense} ${obj}`);
   lines.push('subject to');
+  const labelOk = (nm: string) => /^[A-Za-z_][\w ]*$/.test(nm) && !/^(st|s\.t\.|subject to)$/i.test(nm.trim());
   for (const c of model.constraints) {
     const rel = c.relation === '<=' ? '<=' : c.relation === '>=' ? '>=' : '=';
-    lines.push(`  ${c.name ? c.name + ': ' : ''}${formatLinear(c.coeffs, model.varNames)} ${rel} ${c.rhs.toString()}`);
+    lines.push(`  ${c.name && labelOk(c.name) ? c.name.trim() + ': ' : ''}${formatLinear(c.coeffs, names)} ${rel} ${c.rhs.toString()}`);
   }
-  const free = model.varNames.filter((_, j) => model.varBounds?.[j] && model.varBounds[j]!.lower === null);
-  const nonneg = model.varNames.filter((_, j) => !(model.varBounds?.[j] && model.varBounds[j]!.lower === null));
+  const bounds = (j: number) => model.varBounds?.[j];
+  const isBin = (j: number) => model.integrality?.[j] === 'binary';
+  // The text format has no negative-lower-bound declaration: such a variable is declared free and bounded by a row.
+  const isFree = (j: number) => !isBin(j) && !!bounds(j) && (bounds(j)!.lower === null || bounds(j)!.lower!.isNegative());
+  const free = names.filter((_, j) => isFree(j));
+  const nonneg = names.filter((_, j) => !isFree(j));
   if (nonneg.length) lines.push(`  ${nonneg.join(', ')} >= 0`);
   if (free.length) lines.push(`  free ${free.join(', ')}`);
-  const ints = model.varNames.filter((_, j) => model.integrality?.[j] === 'integer');
-  const bins = model.varNames.filter((_, j) => model.integrality?.[j] === 'binary');
+  // Non-trivial bounds become ordinary rows (equivalent to a bound, and understood by the parser).
+  names.forEach((nm, j) => {
+    const b = bounds(j);
+    if (!b || isBin(j)) return;
+    if (b.lower !== null && !b.lower.isZero()) lines.push(`  ${nm} >= ${b.lower.toString()}`);
+    if (b.upper !== null) lines.push(`  ${nm} <= ${b.upper.toString()}`);
+  });
+  const ints = names.filter((_, j) => model.integrality?.[j] === 'integer');
+  const bins = names.filter((_, j) => model.integrality?.[j] === 'binary');
   if (ints.length) lines.push(`  int ${ints.join(', ')}`);
   if (bins.length) lines.push(`  bin ${bins.join(', ')}`);
   return lines.join('\n');

@@ -147,7 +147,16 @@ export function solveDijkstra(g: GraphModel, options: SolveOptions = {}): Soluti
       }
     }
   }
-  const unreachable = g.nodes.filter(n => labels[n.id]!.value === null).map(n => n.id);
+  // The search may stop as soon as the sink is final, so a missing label does not prove a node is unreachable: test reachability directly.
+  const reach = new Set([src]);
+  for (const stack = [src]; stack.length;) {
+    const u = stack.pop()!;
+    for (const e of usable) {
+      const w = e.from === u ? e.to : !e.directed && e.to === u ? e.from : null;
+      if (w && !reach.has(w)) { reach.add(w); stack.push(w); }
+    }
+  }
+  const unreachable = g.nodes.filter(n => !reach.has(n.id)).map(n => n.id);
   if (unreachable.length) diagnostics.push({ severity: 'warning', code: 'UNREACHABLE', message: `Unreachable from ${nodeName(g, src)}: ${joinList(unreachable.map(u => nodeName(g, u)))}. The reachable part is still solved.` });
   const target = g.sink && g.nodes.some(n => n.id === g.sink) ? g.sink : null;
   if (!target) diagnostics.push({ severity: 'info', code: 'NO_TARGET', message: `No sink chosen: distances from ${nodeName(g, src)} to every node are shown. Pick a sink to also highlight one route.` });
@@ -348,7 +357,7 @@ export function solveMST(g: GraphModel, algorithm: 'kruskal' | 'prim' = 'kruskal
       }
     }
   } else {
-    const start = g.source ?? ids[0]!;
+    const start = g.source && ids.includes(g.source) ? g.source : ids[0]!;
     const inTree = new Set([start]);
     visited.push(start);
     push('Initialisation', `Grow a tree from ${nodeName(g, start)}.`, 'Prim repeatedly adds the cheapest edge leaving the current tree.', 'Prim initialisation', [{ target: `node:${start}`, intent: 'optimal' }], 'initial');
@@ -400,8 +409,9 @@ export function solveMaxFlow(g: GraphModel, options: SolveOptions & { dfs?: bool
   const t0 = performance.now();
   const { diagnostics, usable, fatal } = checkGraph(g);
   if (fatal) return invalid(fatal, 'EMPTY_GRAPH', diagnostics);
-  const sources = g.sources?.length ? g.sources : g.source ? [g.source] : [];
-  const sinks = g.sinks?.length ? g.sinks : g.sink ? [g.sink] : [];
+  const known = new Set(g.nodes.map(x => x.id));
+  const sources = [...new Set((g.sources?.length ? g.sources : g.source ? [g.source] : []).filter(x => known.has(x)))];
+  const sinks = [...new Set((g.sinks?.length ? g.sinks : g.sink ? [g.sink] : []).filter(x => known.has(x)))];
   if (!sources.length || !sinks.length) return invalid('Choose a source and a sink node.', 'NO_TERMINALS', diagnostics);
   if (sources.some(s => sinks.includes(s))) return invalid('A node cannot be both source and sink.', 'TERMINAL_CLASH', diagnostics);
   const augmented: string[] = [];

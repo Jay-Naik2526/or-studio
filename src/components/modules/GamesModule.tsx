@@ -128,7 +128,7 @@ export default function GamesModule() {
       input={<>
         <Card title="Payoff matrix (to the row player)"><div className="flex flex-col gap-3">
           <label className="flex items-center gap-2 text-[0.9rem]">Example<select className="select" value="" aria-label="Load an example" onChange={e => { const x = libraryFor('games')[Number(e.target.value)]; if (x) setSpec(structuredClone(x.spec) as GameSpec); }}><option value="" disabled>Choose…</option>{libraryFor('games').map((x, i) => <option key={x.id} value={i}>{x.title}</option>)}</select></label>
-          <MatrixEditor caption="Payoffs" values={spec.payoff} onChange={payoff => setSpec({ ...spec, payoff })} rowLabels={spec.rows} colLabels={spec.cols} onRowLabels={rows => setSpec({ ...spec, rows })} onColLabels={cols => setSpec({ ...spec, cols })} maxRows={8} maxCols={8} cornerLabel="A \ B" />
+          <MatrixEditor caption="Payoffs" values={spec.payoff} onChange={payoff => setSpec(s => ({ ...s, payoff }))} rowLabels={spec.rows} colLabels={spec.cols} onRowLabels={rows => setSpec(s => ({ ...s, rows }))} onColLabels={cols => setSpec(s => ({ ...s, cols }))} maxRows={8} maxCols={8} cornerLabel="A \ B" />
         </div></Card>
         {res && <DiagnosticsList items={res.diagnostics} />}
       </>}

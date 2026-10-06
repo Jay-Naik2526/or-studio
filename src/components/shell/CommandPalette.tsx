@@ -3,14 +3,22 @@ import { Search, CornerDownLeft, Home, BookMarked, FileText, Info, SunMoon, Flas
 import { MODULES } from './registry';
 import { LIBRARY, MODULE_TITLES } from '../../data/library';
 import { navigate } from '../../lib/router';
+import { useModal } from '../ui/useModal';
 
 interface Item { id: string; group: string; label: string; hint?: string; code?: string; keywords: string; run: () => void }
 
+/** Mounted only while open, so state, focus trap and focus return all follow the dialog's lifetime. */
 export function CommandPalette({ open, onClose, onToggleTheme }: { open: boolean; onClose: () => void; onToggleTheme: () => void }) {
+  return open ? <PaletteBody onClose={onClose} onToggleTheme={onToggleTheme} /> : null;
+}
+
+function PaletteBody({ onClose, onToggleTheme }: { onClose: () => void; onToggleTheme: () => void }) {
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const dlgRef = useRef<HTMLDivElement>(null);
+  useModal(dlgRef, onClose, { initialFocus: () => inputRef.current });
 
   const items = useMemo<Item[]>(() => [
     { id: 'p-home', group: 'Go to', label: 'Overview', code: '⌂', keywords: 'home hub start', run: () => navigate('/') },
@@ -37,30 +45,27 @@ export function CommandPalette({ open, onClose, onToggleTheme }: { open: boolean
     return scored.slice(0, 30).map(x => x.i);
   }, [q, items]);
 
-  useEffect(() => { if (open) { setQ(''); setSel(0); window.setTimeout(() => inputRef.current?.focus(), 0); } }, [open]);
   useEffect(() => { setSel(0); }, [q]);
   useEffect(() => { listRef.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' }); }, [sel]);
 
-  if (!open) return null;
   const run = (i: Item | undefined) => { if (!i) return; onClose(); i.run(); };
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); setSel(s => Math.min(results.length - 1, s + 1)); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setSel(s => Math.max(0, Math.min(results.length - 1, s + 1))); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setSel(s => Math.max(0, s - 1)); }
-    else if (e.key === 'Enter') { e.preventDefault(); run(results[sel]); }
-    else if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+    else if (e.key === 'Enter' && !e.nativeEvent.isComposing) { e.preventDefault(); run(results[sel]); }
   };
 
   let lastGroup = '';
   return (
     <div className="palette-bg" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }} role="presentation">
-      <div className="palette" role="dialog" aria-modal="true" aria-label="Command palette" onKeyDown={onKey}>
+      <div className="palette" role="dialog" aria-modal="true" aria-label="Command palette" data-palette="" ref={dlgRef} onKeyDown={onKey}>
         <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid var(--line)' }}>
           <Search size={18} aria-hidden="true" className="muted" />
-          <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder="Search solvers, methods and worked problems…" className="flex-1 bg-transparent outline-none text-[1.05rem]" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-activedescendant={results[sel] ? `pal-${results[sel]!.id}` : undefined} aria-label="Search" />
+          <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder="Search solvers, methods and worked problems…" className="flex-1 bg-transparent outline-none text-[1.05rem]" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-autocomplete="list" autoComplete="off" spellCheck={false} aria-activedescendant={results[sel] ? `pal-${results[sel]!.id}` : undefined} aria-label="Search" />
           <span className="kbd">esc</span>
         </div>
         <ul id="palette-list" ref={listRef} role="listbox" className="overflow-y-auto py-1" aria-label="Results">
-          {results.length === 0 && <li className="px-4 py-6 text-center muted" role="presentation"><FlaskConical size={18} className="inline mr-2" aria-hidden="true" />Nothing matches “{q}”.</li>}
+          {results.length === 0 && <li className="px-4 py-6 text-center muted break-words" role="presentation" aria-live="polite"><FlaskConical size={18} className="inline mr-2" aria-hidden="true" />Nothing matches “{q}”.</li>}
           {results.map((r, idx) => {
             const head = r.group !== lastGroup ? r.group : null;
             lastGroup = r.group;

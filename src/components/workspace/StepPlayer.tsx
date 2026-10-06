@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { SkipBack, ChevronLeft, ChevronRight, SkipForward, Play, Pause } from 'lucide-react';
 import { announce } from '../../lib/announce';
 import { Btn } from '../ui/ui';
+import { modalOpen, ownsArrowKeys, ownsSpaceKey, shortcutBlocked } from '../ui/keys';
 
 interface Props {
   count: number;
@@ -30,23 +31,24 @@ export function StepPlayer({ count, index, onChange, labels, keyboard = true, su
     return () => window.clearTimeout(t);
   }, [playing, idx, last, speed, go]);
 
-  useEffect(() => {
-    if (count > 0) announce(`Step ${idx + 1} of ${count}${labels?.[idx] ? ': ' + labels[idx] : ''}${summary ? '. ' + summary : ''}`);
-  }, [idx, count, labels, summary]);
+  // announce a change of the message itself — callers usually pass a fresh `labels` array on every render
+  const label = labels?.[idx];
+  const message = count > 0 ? `Step ${idx + 1} of ${count}${label ? ': ' + label : ''}${summary ? '. ' + summary : ''}` : '';
+  useEffect(() => { if (message) announce(message); }, [message]);
 
   useEffect(() => {
     if (!keyboard) return;
     const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (typeof e.key !== 'string' || shortcutBlocked(e, modalOpen())) return;
+      const t = e.target;
       const { idx: i, last: l } = ref.current;
-      if (e.key === 'ArrowRight') { e.preventDefault(); go(i + 1); }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); go(i - 1); }
-      else if (e.key === 'Home') { e.preventDefault(); go(0); }
-      else if (e.key === 'End') { e.preventDefault(); go(l); }
-      else if (e.key === ' ' && !(t instanceof HTMLButtonElement)) { e.preventDefault(); setPlaying(p => !p); }
-      else if (/^[1-9]$/.test(e.key)) { go(Number(e.key) - 1); }
+      const arrows = !ownsArrowKeys(t);
+      if (e.key === 'ArrowRight' && arrows) { e.preventDefault(); go(i + 1); }
+      else if (e.key === 'ArrowLeft' && arrows) { e.preventDefault(); go(i - 1); }
+      else if (e.key === 'Home' && arrows) { e.preventDefault(); go(0); }
+      else if (e.key === 'End' && arrows) { e.preventDefault(); go(l); }
+      else if (e.key === ' ' && !ownsSpaceKey(t)) { e.preventDefault(); setPlaying(p => !p); }
+      else if (/^[1-9]$/.test(e.key) && !e.shiftKey) { go(Number(e.key) - 1); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

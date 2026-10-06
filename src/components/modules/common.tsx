@@ -3,12 +3,32 @@ import { SavedModel, Tableau } from '../../core/types/models';
 import { Step } from '../../core/types/step';
 import { Diagnostic } from '../../core/types/solver';
 import { Report, ReportStep, ReportTable } from '../../lib/report';
-import { loadAutosave, decodeShared } from '../../lib/persist';
+import { loadAutosave, decodeShared, normalizeSaved, safeParseJSON } from '../../lib/persist';
 import { LIBRARY, MODULE_TITLES } from '../../data/library';
 import { ModuleId } from '../../data/specs';
 import { MNum } from '../../core/math/bigm';
 
 export interface Initial<T> { spec: T; variant?: string; step: number; title?: string }
+
+/**
+ * Does `val` have the same shape as `def`? Every key of the default must be present with the same kind of value
+ * (string / number / boolean / array / object) and text fields are length-capped. Saved, shared or imported state
+ * that does not conform is ignored instead of crashing the module that reads it.
+ */
+export function conforms(def: unknown, val: unknown, depth = 0): boolean {
+  if (depth > 8) return false;
+  if (typeof def === 'string') return typeof val === 'string' && val.length <= 100_000;
+  if (typeof def === 'number' || typeof def === 'boolean') return typeof val === typeof def;
+  if (Array.isArray(def)) {
+    if (!Array.isArray(val) || val.length > 5000) return false;
+    return def.length === 0 || val.every(v => conforms(def[0], v, depth + 1));
+  }
+  if (def && typeof def === 'object') {
+    if (!val || typeof val !== 'object' || Array.isArray(val)) return false;
+    return Object.keys(def).every(k => conforms((def as Record<string, unknown>)[k], (val as Record<string, unknown>)[k], depth + 1));
+  }
+  return true;
+}
 
 /** Initial module state priority: shared link ▸ pending file ▸ library item ▸ autosave ▸ default. */
 export function readInitial<T>(moduleId: ModuleId, def: T): Initial<T> {
@@ -16,12 +36,12 @@ export function readInitial<T>(moduleId: ModuleId, def: T): Initial<T> {
   const q = new URLSearchParams(hash.split('?')[1] ?? '');
   const step = Number(q.get('step') ?? 0) || 0;
   const shared = decodeShared(q.get('model'));
-  if (shared && shared.moduleId === moduleId) return { spec: shared.model as T, variant: shared.variant ?? q.get('variant') ?? undefined, step, title: shared.meta.title };
+  if (shared && shared.moduleId === moduleId && conforms(def, shared.model)) return { spec: shared.model as T, variant: shared.variant ?? q.get('variant') ?? undefined, step, title: shared.meta.title };
   try {
     const pending = sessionStorage.getItem('or_pending_model');
     if (pending) {
-      const m = JSON.parse(pending) as SavedModel;
-      if (m.moduleId === moduleId) { sessionStorage.removeItem('or_pending_model'); return { spec: m.model as T, variant: m.variant, step: 0, title: m.meta.title }; }
+      const m = normalizeSaved(safeParseJSON(pending));
+      if (m && m.moduleId === moduleId && conforms(def, m.model)) { sessionStorage.removeItem('or_pending_model'); return { spec: m.model as T, variant: m.variant, step: 0, title: m.meta.title }; }
     }
   } catch { /* ignore */ }
   const lib = q.get('lib');
@@ -30,7 +50,7 @@ export function readInitial<T>(moduleId: ModuleId, def: T): Initial<T> {
     if (e) return { spec: structuredClone(e.spec) as T, variant: q.get('variant') ?? e.variant, step, title: e.title };
   }
   const auto = loadAutosave<SavedModel>(moduleId);
-  if (auto && auto.model !== undefined) return { spec: auto.model as T, variant: auto.variant ?? q.get('variant') ?? undefined, step, title: auto.meta?.title };
+  if (auto && auto.model !== undefined && conforms(def, auto.model)) return { spec: auto.model as T, variant: auto.variant ?? q.get('variant') ?? undefined, step, title: auto.meta?.title };
   return { spec: def, variant: q.get('variant') ?? undefined, step };
 }
 

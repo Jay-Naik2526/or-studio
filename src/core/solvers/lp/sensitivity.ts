@@ -97,6 +97,16 @@ export class SensitivityAnalyzer {
       return { index: k, name, shadowPrice: y, slack, binding, interpretation: interp };
     });
 
+    // A free variable x = x⁺ − x⁻ may cross zero by swapping which half is basic, with identical prices, so the
+    // non-negativity of a basic half is not a real limit while its partner is non-basic.
+    const freePartner = new Map<number, number>();
+    for (const vm of I.sf.varMaps) {
+      if (vm.kind === 'free' && vm.terms.length === 2) {
+        freePartner.set(vm.terms[0]!.col, vm.terms[1]!.col);
+        freePartner.set(vm.terms[1]!.col, vm.terms[0]!.col);
+      }
+    }
+
     // ---------- RHS ranging ----------
     const rhsRanging: RhsRangeInfo[] = model.constraints.map((c, k) => {
       const name = c.name || `Constraint ${k + 1}`;
@@ -105,12 +115,22 @@ export class SensitivityAnalyzer {
       let hi: Rational | null = null; // smallest upper Δ  (Δ ≤ hi)
       let loVar: string | undefined;
       let hiVar: string | undefined;
-      if (rowsOfK.length === 1) {
-        const r = rowsOfK[0]!;
-        const sigma = Rational.of(I.rowMeta[r]!.sigma);
+      if (rowsOfK.length >= 1) {
         for (let i = 0; i < m; i++) {
-          const coef = Binv(i, r).mul(sigma); // d x_Bi / d Δ
+          // d x_Bi / d Δ: every engine row that came from this constraint moves by σ·Δ (an equality solved by the dual
+          // simplex is a ≤ / ≥ pair, so two rows move together).
+          let coef = Rational.ZERO;
+          for (const r of rowsOfK) coef = coef.add(Binv(i, r).mul(Rational.of(I.rowMeta[r]!.sigma)));
           if (coef.isZero()) continue;
+          if (I.colTypes[I.basisFull[i]!] === 'artificial') {
+            // An artificial variable left basic (redundant row) must stay exactly 0, so any change breaks feasibility.
+            const nm = I.colNames[I.basisFull[i]!]!;
+            if (lo === null || lo.isNegative()) { lo = Rational.ZERO; loVar = nm; }
+            if (hi === null || hi.isPositive()) { hi = Rational.ZERO; hiVar = nm; }
+            continue;
+          }
+          const partner = freePartner.get(I.basisFull[i]!);
+          if (partner !== undefined && !basisSet.has(partner)) continue;
           const bound = xB[i]!.neg().div(coef); // x_Bi + Δ·coef ≥ 0
           const name2 = I.colNames[I.basisFull[i]!]!;
           if (coef.isPositive()) {
@@ -125,8 +145,8 @@ export class SensitivityAnalyzer {
         constraintName: name,
         range: {
           current: c.rhs,
-          min: rowsOfK.length === 1 && lo !== null ? c.rhs.add(lo) : null,
-          max: rowsOfK.length === 1 && hi !== null ? c.rhs.add(hi) : null,
+          min: lo !== null ? c.rhs.add(lo) : null,
+          max: hi !== null ? c.rhs.add(hi) : null,
         },
         limitingLow: loVar,
         limitingHigh: hiVar,

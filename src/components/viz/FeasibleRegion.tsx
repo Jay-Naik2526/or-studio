@@ -92,7 +92,8 @@ export function FeasibleRegion({ model, onRhsChange, lattice, title }: Props) {
   };
 
   const latticePts: P[] = [];
-  if (lattice) {
+  // Skip the lattice when the window is huge: scanning it point by point would freeze the page.
+  if (lattice && (xmax - xmin) * (ymax - ymin) <= 250000) {
     const ok = (x: number, y: number) => lines.every(l => { const v = l.a * x + l.b * y; return l.rel === '<=' ? v <= l.c + 1e-9 : l.rel === '>=' ? v >= l.c - 1e-9 : Math.abs(v - l.c) < 1e-9; });
     for (let x = Math.ceil(xmin); x <= xmax && latticePts.length < 900; x++) for (let y = Math.ceil(ymin); y <= ymax && latticePts.length < 900; y++) if (ok(x, y)) latticePts.push({ x, y });
   }

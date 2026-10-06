@@ -56,14 +56,14 @@ export function TutorPanel({ question, stats, onResult, onAdvance, finishedText 
     <Card title="Tutor mode" icon={<GraduationCap size={14} />} right={<Badge kind="accent">{stats.firstTry}/{stats.asked} first try</Badge>}>
       <div className="flex flex-col gap-3">
         <p className="font-semibold text-sm">{question.prompt}</p>
-        {question.hint && <p className="text-[0.82rem] muted inline-flex gap-1 items-start"><Lightbulb size={13} className="shrink-0 mt-0.5" /> {question.hint}</p>}
+        {question.hint && <p className="text-[0.82rem] muted inline-flex gap-1 items-start"><Lightbulb size={13} className="shrink-0 mt-0.5" aria-hidden="true" /> {question.hint}</p>}
         <div className="flex flex-wrap gap-2" role="group" aria-label="Answer choices">
           {question.options.map(o => {
             const was = picked.includes(o.id);
             const style = was ? (o.correct ? { background: 'var(--ok-soft)', borderColor: 'var(--ok)', color: 'var(--ok)' } : { background: 'var(--bad-soft)', borderColor: 'var(--bad)', color: 'var(--bad)' }) : revealed && o.correct ? { background: 'var(--ok-soft)', borderColor: 'var(--ok)' } : undefined;
             return (
               <button key={o.id} type="button" className="btn mono" style={style} disabled={done && !was && !(revealed && o.correct)} onClick={() => choose(o)} aria-pressed={was}>
-                {was && (o.correct ? <CheckCircle2 size={14} aria-label="correct" /> : <XCircle size={14} aria-label="wrong" />)}
+                {was && (o.correct ? <CheckCircle2 size={14} role="img" aria-label="correct" /> : <XCircle size={14} role="img" aria-label="wrong" />)}
                 {o.label}
               </button>
             );
@@ -74,18 +74,18 @@ export function TutorPanel({ question, stats, onResult, onAdvance, finishedText 
           if (!o) return null;
           return (
             <div key={id} className="callout callout-bad" role="alert">
-              <XCircle size={15} className="shrink-0 mt-0.5" />
+              <XCircle size={15} className="shrink-0 mt-0.5" aria-hidden="true" />
               <div><div>{o.feedback}</div>{o.misconception && <div className="text-[0.82rem] mt-1 opacity-90"><b>Misconception:</b> {o.misconception}</div>}</div>
             </div>
           );
         })}
         {correctOpt && (
           <div className="callout callout-ok" role="status">
-            <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
+            <CheckCircle2 size={15} className="shrink-0 mt-0.5" aria-hidden="true" />
             <div>{correctOpt?.feedback}{wrong.length > 0 && <span className="muted"> (after {wrong.length} wrong {wrong.length === 1 ? 'try' : 'tries'})</span>}</div>
           </div>
         )}
-        {revealed && question.reveal && <div className="callout callout-info"><Eye size={15} className="shrink-0 mt-0.5" /><div>{question.reveal}</div></div>}
+        {revealed && question.reveal && <div className="callout callout-info"><Eye size={15} className="shrink-0 mt-0.5" aria-hidden="true" /><div>{question.reveal}</div></div>}
         <div className="flex gap-2">
           {!done && wrong.length >= 2 && <Btn onClick={() => { setRevealed(true); onResult(false, picked.length + 1); }}><Eye size={14} /> Show the answer</Btn>}
           {done && <Btn variant="primary" onClick={onAdvance}>Continue <ArrowRight size={14} /></Btn>}

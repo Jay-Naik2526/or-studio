@@ -138,13 +138,13 @@ export default function IntegerModule() {
           <Card title="Search settings"><div className="flex flex-col gap-3">
             <Field label="Node selection">{id => <select id={id} className="select" value={strategy} onChange={e => setStrategy(e.target.value as NodeSelection)}><option value="bestBound">Best bound first</option><option value="depthFirst">Depth first</option><option value="breadthFirst">Breadth first</option></select>}</Field>
             <Field label="Branching variable">{id => <select id={id} className="select" value={rule} onChange={e => setRule(e.target.value as BranchRule)}><option value="firstFractional">First fractional</option><option value="mostFractional">Most fractional</option></select>}</Field>
-            <Field label="Node limit" hint="Searching stops with a warning when reached.">{id => <input id={id} className="input mono" type="number" min={3} max={5000} value={maxNodes} onChange={e => setMaxNodes(Math.max(3, Number(e.target.value) || 200))} />}</Field>
+            <Field label="Node limit" hint="Searching stops with a warning when reached.">{id => <input id={id} className="input mono" type="number" min={3} max={5000} value={maxNodes} onChange={e => setMaxNodes(Math.min(5000, Math.max(3, Math.floor(Number(e.target.value)) || 200)))} />}</Field>
           </div></Card>
         )}
         {sol && <DiagnosticsList items={sol.diagnostics} />}
       </>}
       tabs={tabs} side={side}
-      player={mode === 'auto' && steps.length > 0 ? <StepPlayer count={steps.length} index={idx} onChange={setStep} labels={steps.map(s => s.phase ?? '')} summary={steps[idx]?.explanation.short} /> : undefined}
+      player={(variant === 'gomory' || mode === 'auto') && steps.length > 0 ? <StepPlayer count={steps.length} index={idx} onChange={setStep} labels={steps.map(s => s.phase ?? '')} summary={steps[idx]?.explanation.short} /> : undefined}
       status={status} saved={saved} onLoad={onLoad} buildReport={buildReport} pngRef={pngRef} step={idx}
     />
   );

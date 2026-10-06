@@ -42,23 +42,29 @@ export default function MarkovModule() {
   const [frame, setFrame] = useState(0);
   const [play, setPlay] = useState(false);
   const pngRef = useRef<HTMLElement | null>(null);
+  // the matrix editor resizes a square matrix with a row call and a column call; the state names are the source of truth for the size
+  const P = useMemo(() => spec.names.map((_, i) => spec.names.map((__, j) => spec.P[i]?.[j] ?? '0')), [spec.names, spec.P]);
+  const initFit = useMemo(() => spec.names.map((_, i) => spec.init[i] ?? '0'), [spec.names, spec.init]);
   const { model, error, n } = useMemo(() => {
-    const P: Rational[][] = [];
+    const Pq: Rational[][] = [];
     { const names = spec.names.map(x => x.trim()); const dup = names.find((x, a) => names.indexOf(x) !== a); if (dup !== undefined) return { model: null, error: dup === '' ? 'Every state needs a name.' : `Two states are both called “${dup}” — state names must be unique.` }; }
-    for (const [i, r] of spec.P.entries()) { const row: Rational[] = []; for (const [j, c] of r.entries()) { const v = parseNum(c); if (!v.ok) return { model: null, error: `P(${spec.names[i]}→${spec.names[j]}): ${v.error === 'empty' ? 'missing' : v.error}`, n: 5 }; row.push(v.value); } P.push(row); }
-    const init0 = spec.init.map(s => parseNum(s));
-    const hasInit = init0.every(x => x.ok) && init0.length === spec.names.length && spec.init.some(s => s.trim() !== '');
-    return { model: { transitionMatrix: P, stateNames: spec.names, initialDistribution: hasInit ? init0.map(x => (x as { ok: true; value: Rational }).value) : undefined }, error: null, n: Math.max(1, Math.min(60, Math.floor(Number(spec.n) || 5))) };
-  }, [spec]);
+    for (const [i, r] of P.entries()) { const row: Rational[] = []; for (const [j, c] of r.entries()) { const v = parseNum(c); if (!v.ok) return { model: null, error: `P(${spec.names[i]}→${spec.names[j]}): ${v.error === 'empty' ? 'missing' : v.error}`, n: 5 }; row.push(v.value); } Pq.push(row); }
+    const nText = spec.n.trim(), nValue = nText === '' ? NaN : Number(nText);
+    if (!Number.isInteger(nValue) || nValue < 0 || nValue > 500) return { model: null, error: `The number of steps n must be a whole number between 0 and 500 (you entered “${nText.length > 24 ? nText.slice(0, 24) + '…' : nText}”).`, n: 5 };
+    const init0 = initFit.map(s => parseNum(s));
+    const hasInit = init0.every(x => x.ok) && init0.length === spec.names.length && initFit.some(s => s.trim() !== '');
+    return { model: { transitionMatrix: Pq, stateNames: spec.names, initialDistribution: hasInit ? init0.map(x => (x as { ok: true; value: Rational }).value) : undefined }, error: null, n: nValue };
+  }, [spec, P, initFit]);
   const res = useMemo(() => (model ? solveMarkovChain(model, n) : null), [model, n]);
   const saved = useSaved('markov', spec);
   const traj = res?.trajectory;
   useEffect(() => { if (!play) return; if (!traj || frame >= traj.length - 1) { setPlay(false); return; } const t = setTimeout(() => setFrame(f => f + 1), 600); return () => clearTimeout(t); }, [play, frame, traj]);
   const chart = useMemo(() => (traj ?? []).map((d, k) => ({ step: k, ...Object.fromEntries(d.map((v, i) => [res!.names[i]!, Number(v.toDecimal(5))])) })), [traj, res]);
   const set = (p: Partial<MarkovSpec>) => setSpec(s => ({ ...s, ...p }));
+  const upd = (f: (s: MarkovSpec) => Partial<MarkovSpec>) => setSpec(s => ({ ...s, ...f(s) }));
   const rowSum = (r: string[]) => { let s = Rational.ZERO; for (const c of r) { const v = parseNum(c); if (!v.ok) return null; s = s.add(v.value); } return s; };
 
-  const buildReport = () => (!res || res.error ? null : { title: 'Markov chain', module: 'Markov chains', problem: `States: ${spec.names.join(', ')}\nP =\n${spec.P.map(r => '  ' + r.join('\t')).join('\n')}`, steps: res.steps.map(s => ({ title: s.title, short: s.explanation, table: s.matrixData ? { headers: ['', ...res.names], rows: s.matrixData.map((r, i) => [res.names[i] ?? String(i + 1), ...r.map(v => v.toString())]) } : undefined })), result: { heading: 'Results', lines: [res.steadyState ? `Steady state π = (${res.steadyState.distribution.map(String).join(', ')})` : 'No steady state computed', `Classes: ${res.classes.map(c => `{${c.states.map(s => res.names[s]).join(', ')}}${c.closed ? ' closed' : ' transient'}`).join('; ')}`] }, diagnostics: res.diagnostics.map(d => `[${d.code}] ${d.message}`) });
+  const buildReport = () => (!res || res.error ? null : { title: 'Markov chain', module: 'Markov chains', problem: `States: ${spec.names.join(', ')}\nP =\n${P.map(r => '  ' + r.join('\t')).join('\n')}`, steps: res.steps.map(s => ({ title: s.title, short: s.explanation, table: s.matrixData ? { headers: ['', ...res.names], rows: s.matrixData.map((r, i) => [res.names[i] ?? String(i + 1), ...r.map(v => v.toString())]) } : undefined })), result: { heading: 'Results', lines: [res.steadyState ? `Steady state π = (${res.steadyState.distribution.map(String).join(', ')})` : 'No steady state computed', `Classes: ${res.classes.map(c => `{${c.states.map(s => res.names[s]).join(', ')}}${c.closed ? ' closed' : ' transient'}`).join('; ')}`] }, diagnostics: res.diagnostics.map(d => `[${d.code}] ${d.message}`) });
 
   const tabs = [
     { id: 'result', label: <><Shuffle size={14} /> Analysis</>, node: <>
@@ -92,9 +98,9 @@ export default function MarkovModule() {
       moduleId="markov" title="Markov chains" accent="#c026d3" subtitle="n-step transitions · exact steady state · classes & periodicity · absorption · first passage"
       input={<Card title="Transition matrix"><div className="flex flex-col gap-3">
         <label className="flex items-center gap-2 text-[0.9rem]">Example<select className="select" value="" aria-label="Load an example" onChange={e => { const x = libraryFor('markov')[Number(e.target.value)]; if (x) setSpec(structuredClone(x.spec) as MarkovSpec); }}><option value="" disabled>Choose…</option>{libraryFor('markov').map((x, i) => <option key={x.id} value={i}>{x.title}</option>)}</select></label>
-        <MatrixEditor caption="Transition probabilities" values={spec.P} onChange={P => set({ P, init: P.map((_, i) => spec.init[i] ?? '0') })} rowLabels={spec.names} colLabels={spec.names} onRowLabels={names => set({ names })} onColLabels={names => set({ names })} square maxRows={8} maxCols={8} cornerLabel="from \ to" rowExtra={{ label: 'Σ', values: spec.P.map(r => { const s = rowSum(r); return s ? s.toString() : '?'; }), onChange: () => undefined }} />
-        <div className="grid grid-cols-2 gap-3"><Field label="Steps n" hint="1 – 60">{id => <input id={id} className="input mono" inputMode="numeric" value={spec.n} onChange={e => set({ n: e.target.value })} />}</Field></div>
-        <div><div className="text-[0.9rem] font-semibold mb-1">Initial distribution</div><div className="flex gap-1.5 flex-wrap">{spec.names.map((nm, i) => <label key={i} className="flex flex-col text-[12px] muted">{nm}<input className="input num !w-16" aria-label={`Initial probability of ${nm}`} value={spec.init[i] ?? ''} onChange={e => set({ init: spec.names.map((_, k) => (k === i ? e.target.value : spec.init[k] ?? '0')) })} /></label>)}</div></div>
+        <MatrixEditor caption="Transition probabilities" values={P} onChange={Pm => upd(() => ({ P: Pm }))} rowLabels={spec.names} colLabels={spec.names} onRowLabels={names => set({ names })} onColLabels={names => set({ names })} square maxRows={8} maxCols={8} cornerLabel="from \ to" rowExtra={{ label: 'Σ', values: P.map(r => { const s = rowSum(r); return s ? s.toString() : '?'; }), onChange: () => undefined }} />
+        <div className="grid grid-cols-2 gap-3"><Field label="Steps n" hint="0 – 500">{id => <input id={id} className="input mono" inputMode="numeric" value={spec.n} onChange={e => set({ n: e.target.value })} />}</Field></div>
+        <div><div className="text-[0.9rem] font-semibold mb-1">Initial distribution</div><div className="flex gap-1.5 flex-wrap">{spec.names.map((nm, i) => <label key={i} className="flex flex-col text-[12px] muted">{nm}<input className="input num !w-16" aria-label={`Initial probability of ${nm}`} value={initFit[i] ?? ''} onChange={e => { const v = e.target.value; upd(s => ({ init: s.names.map((_, k) => (k === i ? v : s.init[k] ?? '0')) })); }} /></label>)}</div></div>
       </div></Card>}
       tabs={tabs} side={res && !res.error ? <Card title="Reading the result"><p className="text-[0.95rem] leading-relaxed" style={{ color: 'var(--text-2)' }}>{res.steps.map(s => s.explanation).join(' ')}</p></Card> : <Card><p className="text-[0.95rem] muted">{res?.error ?? error ?? ''}</p></Card>}
       status={res ? (res.error ? <StatusBanner kind="bad" label="Not stochastic">{res.error}</StatusBanner> : <StatusBanner kind="ok" label="Chain analysed"><span className="text-[0.95rem]">{res.irreducible ? 'irreducible' : `${res.classes.length} classes`}{res.periodic ? `, period ${res.period}` : ', aperiodic'}</span>{res.steadyState && <span className="mono text-[0.9rem]">π = ({res.steadyState.distribution.map(v => v.toString()).join(', ')})</span>}</StatusBanner>) : null}

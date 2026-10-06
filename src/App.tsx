@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { ReactNode, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Moon, Sun, Menu, X, Home, BookMarked, FileText, Info, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react';
 import { useRoute, href } from './lib/router';
 import { useTheme } from './components/shell/theme';
@@ -9,6 +9,9 @@ import { DocsPage } from './components/shell/DocsPage';
 import { MODULES, moduleById } from './components/shell/registry';
 import { ErrorBoundary } from './components/shell/ErrorBoundary';
 import { CommandPalette } from './components/shell/CommandPalette';
+import { resolveRoute, moduleKey } from './components/shell/routeUtil';
+import { isTypingTarget, modalOpen } from './components/ui/keys';
+import { useModal } from './components/ui/useModal';
 
 const GROUPS: { title: string; ids: string[] }[] = [
   { title: 'Optimise', ids: ['lp', 'integer', 'nlp'] },
@@ -29,23 +32,61 @@ function Logo({ compact }: { compact?: boolean }) {
   );
 }
 
+/** Phone navigation drawer: a real modal — focus is trapped, Escape closes, focus returns to the menu button. */
+function MobileNav({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useModal(ref, onClose);
+  return (
+    <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation" ref={ref}>
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} aria-hidden="true" />
+      {/* any link closes the drawer — following the link to the page already open raises no route change */}
+      <div className="rail absolute left-0 top-0 bottom-0 w-[280px] max-w-[85vw]" onClick={e => { if ((e.target as HTMLElement).closest('a')) onClose(); }}>
+        <button className="btn btn-icon btn-ghost absolute right-1 top-2" onClick={onClose} aria-label="Close menu"><X size={17} /></button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const route = useRoute();
   const { theme, toggle } = useTheme();
   const [open, setOpen] = useState(false);
   const [pal, setPal] = useState(false);
   const [collapsed, setCollapsed] = useState(() => { try { const v = localStorage.getItem('or_rail'); return v === null ? window.innerWidth < 1560 : v === '1'; } catch { return false; } });
-  const [first, second] = route.path;
-  const mod = first === 'm' && second ? moduleById(second) : undefined;
+  const resolved = resolveRoute(route.path, MODULES.map(m => m.id));
+  const mod = resolved.kind === 'module' ? moduleById(resolved.id) : undefined;
   const Mod = mod?.component;
+  const closeNav = useCallback(() => setOpen(false), []);
   useEffect(() => { setOpen(false); }, [route.raw]);
   useEffect(() => { try { localStorage.setItem('or_rail', collapsed ? '1' : '0'); } catch { /* ignore */ } }, [collapsed]);
+  // the phone menu is meaningless once the permanent rail appears
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const on = () => { if (mq.matches) setOpen(false); };
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+
+  const crumb = mod ? mod.name : resolved.kind === 'library' ? 'Problem library' : resolved.kind === 'docs' ? 'Manual' : resolved.kind === 'about' ? 'About' : resolved.kind === 'hub' ? 'Overview' : 'Not found';
+  // per-route document title; on route changes (not the first load) focus moves to the new page for keyboard and screen-reader users
+  const pageKey = resolved.kind === 'module' ? `m/${resolved.id}` : resolved.kind;
+  const shownKey = useRef<string | null>(null);
+  useEffect(() => {
+    document.title = resolved.kind === 'hub' ? 'OR-Studio — step-visible Operations Research solver' : `${crumb} — OR-Studio`;
+    if (shownKey.current !== null && shownKey.current !== pageKey) document.getElementById('main')?.focus();
+    shownKey.current = pageKey;
+  }, [pageKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setPal(p => !p); return; }
-      const el = e.target as HTMLElement | null;
-      if (e.key === '/' && !(el && (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || el.isContentEditable))) { e.preventDefault(); setPal(true); }
+      if (e.isComposing || typeof e.key !== 'string') return;
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k') {
+        // another dialog (save / open, phone menu) keeps the keyboard to itself; the palette itself toggles closed
+        if (modalOpen() && !document.querySelector('[data-palette]')) return;
+        e.preventDefault(); setPal(p => !p); return;
+      }
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.defaultPrevented && !isTypingTarget(e.target) && !modalOpen()) { e.preventDefault(); setPal(true); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -53,19 +94,18 @@ export default function App() {
   const closePal = useCallback(() => setPal(false), []);
 
   const links = [
-    { to: '/', label: 'Overview', icon: Home, active: route.path.length === 0 },
-    { to: '/library', label: 'Problem library', icon: BookMarked, active: first === 'library' },
-    { to: '/docs', label: 'Manual', icon: FileText, active: first === 'docs' },
-    { to: '/about', label: 'About', icon: Info, active: first === 'about' },
+    { to: '/', label: 'Overview', icon: Home, active: resolved.kind === 'hub' },
+    { to: '/library', label: 'Problem library', icon: BookMarked, active: resolved.kind === 'library' },
+    { to: '/docs', label: 'Manual', icon: FileText, active: resolved.kind === 'docs' },
+    { to: '/about', label: 'About', icon: Info, active: resolved.kind === 'about' },
   ];
-  const crumb = mod ? mod.name : first === 'library' ? 'Problem library' : first === 'docs' ? 'Manual' : first === 'about' ? 'About' : 'Overview';
 
   const rail = (compact: boolean) => (
     <nav aria-label="Main" className="flex flex-col h-full overflow-y-auto">
       <Logo compact={compact} />
       <div className="mt-1" style={{ borderTop: '1px solid var(--border)' }}>
         {links.map(l => (
-          <a key={l.to} href={href(l.to)} className="rail-link" aria-current={l.active ? 'page' : undefined} title={l.label}>
+          <a key={l.to} href={href(l.to)} className="rail-link" aria-current={l.active ? 'page' : undefined} title={l.label} aria-label={compact ? l.label : undefined}>
             <span className="code"><l.icon size={14} aria-hidden="true" /></span>{!compact && l.label}
           </a>
         ))}
@@ -76,7 +116,7 @@ export default function App() {
           {g.ids.map(id => {
             const m = MODULES.find(x => x.id === id)!;
             return (
-              <a key={id} href={href(`/m/${id}`)} className="rail-link" aria-current={mod?.id === id ? 'page' : undefined} title={m.name}>
+              <a key={id} href={href(`/m/${id}`)} className="rail-link" aria-current={mod?.id === id ? 'page' : undefined} title={m.name} aria-label={compact ? m.name : undefined}>
                 <span className="code" aria-hidden="true">{m.short}</span>
                 {!compact && m.name}
               </a>
@@ -85,7 +125,7 @@ export default function App() {
         </div>
       ))}
       <div className="mt-auto p-2 flex gap-1 items-center" style={{ borderTop: '1px solid var(--border)' }}>
-        <button className="btn btn-sm btn-ghost hidden lg:inline-flex" onClick={() => setCollapsed(c => !c)} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>{collapsed ? <PanelLeftOpen size={15} /> : <><PanelLeftClose size={15} /> Collapse</>}</button>
+        <button className="btn btn-sm btn-ghost hidden lg:inline-flex" onClick={() => setCollapsed(c => !c)} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-expanded={!collapsed}>{collapsed ? <PanelLeftOpen size={15} /> : <><PanelLeftClose size={15} /> Collapse</>}</button>
       </div>
     </nav>
   );
@@ -96,17 +136,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen lg:flex">
-      <a className="skip" href="#main">Skip to content</a>
+      <a className="skip" href="#main" onClick={e => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
       <aside className={`rail no-print hidden lg:block sticky top-0 h-screen shrink-0 ${collapsed ? 'w-[68px]' : 'w-[258px]'}`}>{rail(collapsed)}</aside>
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setOpen(false)} />
-          <div className="rail absolute left-0 top-0 bottom-0 w-[280px] max-w-[85vw]">
-            <button className="btn btn-icon btn-ghost absolute right-1 top-2" onClick={() => setOpen(false)} aria-label="Close menu"><X size={17} /></button>
-            {rail(false)}
-          </div>
-        </div>
-      )}
+      {open && <MobileNav onClose={closeNav}>{rail(false)}</MobileNav>}
       <div className="flex-1 min-w-0 flex flex-col">
         <header className="topbar no-print sticky top-0 z-40 flex items-center gap-3 h-[52px] pr-3 lg:px-6">
           <div className="lg:hidden shrink-0"><Logo compact /></div>
@@ -125,16 +157,16 @@ export default function App() {
             <button className="btn btn-icon btn-ghost lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu"><Menu size={19} /></button>
           </div>
         </header>
-        <main id="main" className="flex-1 min-w-0 px-4 sm:px-6 py-6">
+        <main id="main" tabIndex={-1} className="flex-1 min-w-0 px-4 sm:px-6 py-6">
           <ErrorBoundary resetKey={route.raw.split('?')[0]}>
             <Suspense fallback={<div className="muted text-sm py-10 text-center mono" role="status">LOADING SHEET…</div>}>
-              {route.path.length === 0 && <Hub />}
-              {first === 'library' && <LibraryPage />}
-              {first === 'about' && <AboutPage />}
-              {first === 'docs' && <DocsPage />}
-              {Mod && <Mod key={mod!.id + (route.query.get('lib') ?? '') + (route.query.get('model')?.slice(0, 12) ?? '')} />}
-              {first === 'm' && !mod && <div className="callout callout-bad">Unknown module “{second}”. <a href={href('/')} className="underline">Back to the overview</a></div>}
-              {first && !['m', 'library', 'about', 'docs'].includes(first) && <div className="callout callout-warn">Page not found. <a href={href('/')} className="underline">Back to the overview</a></div>}
+              {resolved.kind === 'hub' && <Hub />}
+              {resolved.kind === 'library' && <LibraryPage />}
+              {resolved.kind === 'about' && <AboutPage />}
+              {resolved.kind === 'docs' && <DocsPage />}
+              {Mod && mod && <Mod key={moduleKey(mod.id, route.query)} />}
+              {resolved.kind === 'unknown-module' && <div className="callout callout-bad" role="alert">{resolved.id ? <>Unknown module “{resolved.id}”.</> : <>No module was chosen.</>} <a href={href('/')} className="underline">Back to the overview</a></div>}
+              {resolved.kind === 'not-found' && <div className="callout callout-warn" role="alert">Page not found. <a href={href('/')} className="underline">Back to the overview</a></div>}
             </Suspense>
           </ErrorBoundary>
         </main>

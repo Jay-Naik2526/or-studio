@@ -82,7 +82,16 @@ export class GomorySolver implements Solver<LPModel, Tableau, GomoryResult> {
   }
 
   normalize(model: LPModel): LPModel {
-    return { ...model, integrality: model.integrality ?? (Array(model.objective.length).fill('integer') as LPModel['integrality']) };
+    const integrality = model.integrality ?? (Array(model.objective.length).fill('integer') as LPModel['integrality']);
+    // A binary variable is an integer in [0, 1]: make the upper bound explicit so the relaxation respects it.
+    const varBounds = integrality!.some(t => t === 'binary')
+      ? model.objective.map((_, j) => {
+          const b = model.varBounds?.[j] ?? { lower: Rational.ZERO, upper: null };
+          if (integrality![j] !== 'binary') return b;
+          return { lower: b.lower, upper: b.upper === null || b.upper.gt(Rational.ONE) ? Rational.ONE : b.upper };
+        })
+      : model.varBounds;
+    return { ...model, integrality, varBounds };
   }
 
   solve(rawModel: LPModel, options: GomoryOptions = {}): Solution<Tableau, GomoryResult> {

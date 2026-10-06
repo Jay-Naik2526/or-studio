@@ -58,6 +58,13 @@ const err = (model: InventoryModel, error: string): InventoryResult => ({ model,
 const pos = (x: number | undefined) => x !== undefined && Number.isFinite(x) && x > 0;
 
 export function solveInventory(input: InventoryInput): InventoryResult {
+  const res = solveInventoryRaw(input);
+  const bad = (x: number | undefined) => x !== undefined && !Number.isFinite(x);
+  if (!res.error && (bad(res.Q) || bad(res.annualCosts?.total) || bad(res.reorderPoint) || bad(res.newsvendor?.expectedProfit))) return err(input.model, 'The inputs are so extreme that the results overflow the number range. Use more moderate values.');
+  return res;
+}
+
+function solveInventoryRaw(input: InventoryInput): InventoryResult {
   const m = input.model;
   const steps: InventoryResult['steps'] = [];
   const interp: string[] = [];
@@ -70,7 +77,8 @@ export function solveInventory(input: InventoryInput): InventoryResult {
   const D = input.demand!, K = input.setupCost!;
   const h = input.holdingCost ?? 0;
   const c = input.unitCost ?? 0;
-  if (c < 0) return err(m, 'The unit purchase cost cannot be negative.');
+  if (!Number.isFinite(c) || c < 0) return err(m, 'The unit purchase cost must be a finite number that is not negative.');
+  if (input.leadTime !== undefined && (!Number.isFinite(input.leadTime) || input.leadTime < 0)) return err(m, 'The lead time must be a finite number that is not negative.');
 
   if (m === 'eoq') {
     const Q = Math.sqrt((2 * K * D) / h);
@@ -78,8 +86,10 @@ export function solveInventory(input: InventoryInput): InventoryResult {
     const curve = sweep(Q, q => ({ ordering: (K * D) / q, holding: (h * q) / 2, shortage: 0, purchase: c * D }));
     steps.push({ title: 'Economic order quantity', text: `Setting the derivative of TC(Q) = KD/Q + hQ/2 to zero balances ordering and holding cost: Q* = √(2KD/h) = √(2·${K}·${D}/${h}) = ${f(Q)}.`, formula: 'Q^*=\\sqrt{\\tfrac{2KD}{h}}' });
     let R: number | undefined;
-    if (input.leadTime !== undefined && input.leadTime >= 0) {
-      const eff = input.leadTime - Math.floor(input.leadTime / T) * T;
+    if (input.leadTime !== undefined) {
+      // whole cycles inside L; the tolerance stops L = n·t₀ (e.g. 0.6 = 3 × 0.2) from being read as n − 1 cycles plus a full one
+      const cycles = Math.floor(input.leadTime / T + 1e-9);
+      const eff = Math.max(0, input.leadTime - cycles * T);
       R = D * eff;
       steps.push({ title: 'Reorder point', text: `Cycle length t₀ = Q*/D = ${f(T, 4)}. Lead time L = ${input.leadTime} → effective lead time Lₑ = L − n·t₀ = ${f(eff, 4)} (n = whole cycles inside L). Reorder when inventory falls to R = D·Lₑ = ${f(R)}.`, formula: 'R = D\\,L_e' });
     }
@@ -121,8 +131,11 @@ export function solveInventory(input: InventoryInput): InventoryResult {
   // discount
   const breaks = (input.breaks ?? []).slice().sort((a, b) => a.minQty - b.minQty);
   if (breaks.length < 1) return err(m, 'Enter at least one price break (quantity from, unit price).');
-  if (breaks.some(b => !(b.price > 0) || b.minQty < 0)) return err(m, 'Every price must be > 0 and every break quantity ≥ 0.');
+  if (breaks.some(b => !(Number.isFinite(b.price) && b.price > 0) || !(Number.isFinite(b.minQty) && b.minQty >= 0))) return err(m, 'Every price must be a finite number > 0 and every break quantity a finite number ≥ 0.');
   if (new Set(breaks.map(b => b.minQty)).size !== breaks.length) return err(m, 'Two price breaks have the same starting quantity.');
+  if (breaks[0]!.minQty > 1) return err(m, `The first price break must start at quantity 0 (or 1), not ${f(breaks[0]!.minQty)}; otherwise orders below that quantity would have no price.`);
+  const rise = breaks.findIndex((b, i) => i > 0 && b.price > breaks[i - 1]!.price);
+  if (rise > 0) return err(m, `The price rises from ${f(breaks[rise - 1]!.price)} to ${f(breaks[rise]!.price)} at quantity ${f(breaks[rise]!.minQty)}: a quantity discount must not increase the unit price.`);
   if (input.holdingIsRate && !(h > 0 && h < 5)) return err(m, 'Holding rate I should be a fraction of price per unit time, e.g. 0.2 for 20 %.');
   if (!input.holdingIsRate && !pos(input.holdingCost)) return err(m, 'The holding cost h must be greater than 0.');
   const type = input.discountType ?? 'allUnits';
@@ -192,7 +205,9 @@ function newsvendor(input: InventoryInput): InventoryResult {
   if (!pos(p)) return err(m, 'The selling price must be greater than 0.');
   if (!pos(c)) return err(m, 'The unit cost must be greater than 0.');
   if (p! <= c!) return err(m, 'The selling price must exceed the unit cost; otherwise no stocking is profitable.');
-  if (s < 0 || s >= c!) return err(m, 'The salvage value must be ≥ 0 and below the unit cost (otherwise there is no risk in over-stocking).');
+  if (!Number.isFinite(p!) || !Number.isFinite(c!)) return err(m, 'The selling price and unit cost must be finite numbers.');
+  if (!Number.isFinite(s) || s < 0 || s >= c!) return err(m, 'The salvage value must be ≥ 0 and below the unit cost (otherwise there is no risk in over-stocking).');
+  if (!Number.isFinite(g) || g < 0) return err(m, 'The goodwill (penalty per unit short) must be a finite number that is not negative.');
   const Cu = p! - c! + g, Co = c! - s;
   const CR = Cu / (Cu + Co);
   const dist = input.demandDist ?? 'normal';
@@ -201,17 +216,19 @@ function newsvendor(input: InventoryInput): InventoryResult {
   let Q = 0, z: number | undefined, expShort = 0, expLeft = 0, mu = 0;
   if (dist === 'normal') {
     mu = input.mean ?? NaN; const sd = input.stdDev ?? NaN;
-    if (!Number.isFinite(mu) || mu <= 0) return err(m, 'The mean demand must be greater than 0.');
-    if (!(sd >= 0)) return err(m, 'The standard deviation cannot be negative.');
+    if (!Number.isFinite(mu) || mu <= 0) return err(m, 'The mean demand must be a finite number greater than 0.');
+    if (!(sd >= 0) || !Number.isFinite(sd)) return err(m, 'The standard deviation must be a finite number that is not negative.');
     z = normalInv(CR);
     Q = mu + z * sd;
+    if (Q < 0) return err(m, `The optimal stock level would be negative (μ + zσ = ${f(Q)}): the normal demand has too much spread (σ = ${f(sd)}) relative to its mean (μ = ${f(mu)}). Use a smaller σ or a different distribution.`);
     const phi = Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI);
     expShort = sd * (phi - z * (1 - normalCDF(z)));
     expLeft = Q - mu + expShort;
     steps.push({ title: 'Normal demand', text: `z = Φ⁻¹(${f(CR, 4)}) = ${f(z, 4)}, so Q* = μ + zσ = ${f(mu)} + ${f(z, 3)}·${f(sd)} = ${f(Q)}. Expected shortage σ[φ(z) − z(1−Φ(z))] = ${f(expShort)}.`, formula: 'Q^*=\\mu+z\\sigma' });
   } else if (dist === 'uniform') {
     const a = input.uniformMin ?? NaN, b = input.uniformMax ?? NaN;
-    if (!(b > a)) return err(m, 'For uniform demand the maximum must exceed the minimum.');
+    if (!(Number.isFinite(a) && Number.isFinite(b) && b > a)) return err(m, 'For uniform demand the maximum must exceed the minimum (both finite).');
+    if (a < 0) return err(m, 'Demand cannot be negative: the minimum of the uniform range must be ≥ 0.');
     mu = (a + b) / 2;
     Q = a + CR * (b - a);
     expShort = ((b - Q) ** 2) / (2 * (b - a));
@@ -220,6 +237,8 @@ function newsvendor(input: InventoryInput): InventoryResult {
   } else {
     const d = (input.discrete ?? []).slice().sort((x, y) => x.demand - y.demand);
     if (!d.length) return err(m, 'Enter the discrete demand values with their probabilities.');
+    if (d.some(x => !Number.isFinite(x.demand) || x.demand < 0)) return err(m, 'Every demand value must be a finite number that is not negative.');
+    if (d.some(x => !Number.isFinite(x.prob) || x.prob < 0 || x.prob > 1)) return err(m, 'Every probability must be a number between 0 and 1.');
     const tot = d.reduce((x, y) => x + y.prob, 0);
     if (Math.abs(tot - 1) > 1e-6) return err(m, `The probabilities sum to ${f(tot, 4)}, not 1.`);
     let cum = 0; Q = d[d.length - 1]!.demand;

@@ -117,7 +117,7 @@ export class GraphicalLPSolver {
       isOptimal: false,
     }));
 
-    if (sol.status === 'infeasible' || (feasible.length === 0 && sol.status !== 'unbounded')) {
+    if (sol.status === 'infeasible' || (feasible.length === 0 && sol.status !== 'unbounded' && !sol.result)) {
       return { status: 'infeasible', vertices: [], optimalVertex: null, optimalVertices: [], optimalValue: null, alternateOptima: false, bindingConstraints: [], lines, regionUnbounded: false, objective: { c1, c2, sense: model.sense }, messages: ['The constraints have no common point: the feasible region is empty.'] };
     }
     if (sol.status === 'unbounded') {
@@ -128,7 +128,14 @@ export class GraphicalLPSolver {
     const bestVal = sol.result!.objectiveValue;
     const optimalVertices = vertices.filter(v => v.z.eq(bestVal));
     optimalVertices.forEach(v => (v.isOptimal = true));
-    const first = optimalVertices[0] ?? null;
+    let first: VertexInfo | null = optimalVertices[0] ?? null;
+    if (!first && sol.result) {
+      // The region has no corner point at all (free variables, e.g. a strip or a half-plane): report the solver's point.
+      const pt: Point2D = { x: sol.result.variableValues[0] ?? Rational.ZERO, y: sol.result.variableValues[1] ?? Rational.ZERO };
+      first = { ...pt, z: bestVal, binding: lines.map((l, i) => (lhs(l, pt).eq(l.c) ? i : -1)).filter(i => i >= 0), isOptimal: true };
+      optimalVertices.push(first);
+      messages.push('The feasible region has no corner point (a variable is unrestricted), so the optimum is reported at a point on its boundary.');
+    }
     const binding = first ? first.binding.map(i => lines[i]!.constraintIndex).filter((i): i is number => i !== null) : [];
     const alt = optimalVertices.length > 1 || sol.status === 'optimal-alternate-exists';
     if (alt) messages.push('The iso-profit line is parallel to a binding constraint: every point on that edge is optimal (alternate optima).');

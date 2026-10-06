@@ -32,7 +32,7 @@ export function AboutPage() {
         <p><b>Honest limits.</b> Textbook-scale problems (a few hundred variables) are fast; this is not a replacement for industrial solvers. Closed-form modules (queues, inventory, simulation) use ordinary floating point, as is standard.</p>
       </div></section>
       <section className="card"><h2 className="card-h">Keyboard shortcuts</h2><div className="card-b grid sm:grid-cols-2 gap-1 text-sm">
-        {[['← →', 'previous / next step'], ['Space', 'play / pause'], ['Home / End', 'first / last step'], ['1 – 9', 'jump to step n'], ['P', 'presentation mode'], ['Esc', 'leave presentation / close menus']].map(([k, d]) => <div key={k} className="flex gap-3 items-center"><span className="kbd w-24 text-center">{k}</span><span>{d}</span></div>)}
+        {[['← →', 'previous / next step'], ['Space', 'play / pause'], ['Home / End', 'first / last step'], ['1 – 9', 'jump to step n'], ['P', 'presentation mode'], ['/  or  Ctrl/⌘ K', 'search solvers and problems'], ['Esc', 'close dialogs and menus, leave presentation']].map(([k, d]) => <div key={k} className="flex gap-3 items-center"><span className="kbd min-w-24 text-center whitespace-nowrap">{k}</span><span>{d}</span></div>)}
       </div></section>
       <p className="text-[0.82rem] muted">Based on the curriculum of Hamdy A. Taha, <i>Operations Research: An Introduction</i>. Not affiliated with the TORA software or its publisher.</p>
     </div>

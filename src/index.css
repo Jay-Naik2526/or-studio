@@ -17,11 +17,11 @@
   --surface-2: #f2f5f9;
   --surface-3: #e4eaf2;
   --border: #d3dce8;
-  --border-strong: #9fb0c6;
+  --border-strong: #7388a4;
   --line: #b4c1d3;
   --text: #0a1222;
   --text-2: #29364f;
-  --text-3: #596884;
+  --text-3: #4e5d79;
   --accent: #c8f43a;
   --accent-edge: #0a1222;
   --accent-soft: #eefbc2;
@@ -58,11 +58,11 @@
   --surface-2: #112038;
   --surface-3: #19304f;
   --border: #1d3454;
-  --border-strong: #3a5987;
+  --border-strong: #4f72a3;
   --line: #2b466e;
   --text: #e8f0ff;
   --text-2: #bccbe6;
-  --text-3: #8299bd;
+  --text-3: #93aacc;
   --accent: #d4ff4d;
   --accent-edge: #d4ff4d;
   --accent-soft: #263a0b;
@@ -107,12 +107,18 @@
   h1, h2, h3 { font-family: var(--sans); letter-spacing: -0.028em; font-weight: 650; }
   a { color: inherit; }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  main:focus { outline: none; }
+  ::placeholder { color: var(--text-3); opacity: 1; }
   ::selection { background: var(--hl); color: var(--text); }
   *::-webkit-scrollbar { width: 11px; height: 11px; }
   *::-webkit-scrollbar-thumb { background: var(--border-strong); border: 3px solid transparent; background-clip: padding-box; }
   *::-webkit-scrollbar-track { background: transparent; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+    /* the hero figure shows its finished state instead of an undrawn path */
+    .hero-trace { animation: none !important; stroke-dashoffset: 0; }
+    .hero-dot { animation: none !important; offset-distance: 100%; }
+    .hero-ring { animation: none !important; opacity: 0; }
   }
 }
 
@@ -137,6 +143,7 @@
   .card-h > span:first-child::before { content: ""; width: .5rem; height: .5rem; background: var(--accent); box-shadow: 0 0 0 1px var(--accent-edge); margin-right: .45rem; flex: none; }
   .card-b { padding: 1rem 1.1rem; }
   .muted { color: var(--text-3); }
+  .tt { display: inline-flex; align-items: center; }
   .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
   .eyebrow { font-family: var(--mono); font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--text-3); font-weight: 500; }
   .display { font-family: var(--sans); font-weight: 650; letter-spacing: -0.035em; }
@@ -221,13 +228,13 @@
   .rail { background: var(--surface); border-right: 1px solid var(--line); color: var(--text-2); }
   .rail a, .rail button { text-decoration: none; }
   .rail-link { display: flex; align-items: center; gap: .7rem; padding: .36rem .85rem; font-size: .95rem; font-weight: 550; color: var(--text-2); position: relative; }
-  .rail-link .code { flex: none; width: 2.1rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: .68rem; font-weight: 700; letter-spacing: .02em; border: 1px solid var(--border-strong); color: var(--text-2); background: var(--surface); }
+  .rail-link .code { flex: none; width: 2.2rem; height: 1.6rem; display: inline-flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: .72rem; font-weight: 700; letter-spacing: .02em; border: 1px solid var(--border-strong); color: var(--text-2); background: var(--surface); }
   .rail-link:hover { color: var(--text); background: var(--surface-2); }
   .rail-link:hover .code { border-color: var(--text); }
   .rail-link[aria-current="page"] { color: var(--text); font-weight: 700; background: var(--surface-2); }
   .rail-link[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--text); }
   .rail-link[aria-current="page"] .code { background: var(--accent); color: var(--on-accent); border-color: var(--accent-edge); }
-  .rail-sec { padding: 1.15rem .95rem .35rem; font-family: var(--mono); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); font-weight: 500; }
+  .rail-sec { padding: 1.15rem .95rem .35rem; font-family: var(--mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); font-weight: 500; }
   .topbar { background: var(--shell); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
   .searchbtn { display: inline-flex; align-items: center; gap: .6rem; min-width: min(26rem, 46vw); padding: .4rem .6rem .4rem .75rem; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-3); font-size: .92rem; cursor: pointer; border-radius: var(--r); transition: border-color .12s; }
   .searchbtn:hover { border-color: var(--text); color: var(--text-2); }
@@ -281,11 +288,28 @@
 }
 
 @media print {
+  /* always print with the light tokens, even when the dark theme is on screen */
+  :root, .dark {
+    --bg: #fff; --surface: #fff; --surface-2: #f2f5f9; --surface-3: #e4eaf2; --border: #d3dce8; --border-strong: #7388a4; --line: #b4c1d3;
+    --text: #000; --text-2: #1c2638; --text-3: #3d4a63; --accent: #c8f43a; --accent-edge: #0a1222; --accent-text: #3b5a00; --on-accent: #0a1222; --hl: #ccf53f;
+    --ok: #0f7544; --ok-soft: #d6f1e3; --bad: #be2424; --bad-soft: #fadcdc; --warn: #7f5900; --warn-soft: #f8ecb9;
+    --entering: #0a62a8; --entering-soft: #d9ecfa; --leaving: #a24a00; --leaving-soft: #fbe7c6; --pivot: #c8f43a; --series: #0a1222; --mark: rgb(10 18 34 / 0.45);
+    color-scheme: light;
+  }
+  html, html.presentation { font-size: 12pt; }
   body { background: #fff !important; color: #000 !important; }
-  .no-print, .rail, .dock, .btn, .topbar { display: none !important; }
-  .card { break-inside: avoid; }
+  .no-print, .rail, .dock, .btn, .topbar, .skip, .palette-bg { display: none !important; }
+  main { padding: 0 !important; }
+  .card { break-inside: avoid; box-shadow: none; }
   .card::before { display: none; }
+  .nb-sec { grid-template-columns: minmax(0, 1fr) !important; }
+  .nb-gut { display: none !important; }
+  .overflow-x-auto, .overflow-auto { overflow: visible !important; }
+  a { text-decoration: none; }
 }
+
+/* KaTeX's own stylesheet is unlayered, so this must be too; keeps sub/superscripts at 12px or more */
+html .katex { font-size: 1.28em; }
 
 /* ---- hero figure motion ---- */
 .hero-trace { stroke-dashoffset: 620; animation: trace 6.5s ease-in-out infinite; }
@@ -295,11 +319,21 @@
 @keyframes travel { 0% { offset-distance: 0%; } 62%, 100% { offset-distance: 100%; } }
 @keyframes ring { 0%, 60% { opacity: 0; transform: scale(.6); } 75% { opacity: 1; transform: scale(1.5); } 100% { opacity: .0; transform: scale(2); } }
 
+/* a short window (phone held sideways, 200% zoom on a laptop): the step bar stays in the flow instead of covering a third of the screen */
+@media (max-height: 520px) {
+  .nb .dock { position: relative; }
+}
+
 /* ---- small screens / touch: declared last so they win over the base rules ---- */
 @layer components {
-  @media (max-width: 767px), (pointer: coarse) {
+  @media (max-width: 1023px), (pointer: coarse) {
     .btn { min-height: 42px; }
-    .btn-sm { min-height: 38px; padding-inline: .8rem; }
+    .btn-sm { min-height: 40px; padding-inline: .8rem; }
+    .searchbtn { min-height: 42px; }
+    .tt { min-height: 40px; }
+    summary { padding-block: .62rem; }
+    .range { height: 40px; }
+    input[type="checkbox"], input[type="radio"] { width: 1.2rem; height: 1.2rem; }
     .btn-icon { min-width: 42px; }
     .input, .select { min-height: 42px; }
     .input.num { min-height: 40px; }
@@ -313,5 +347,12 @@
     .titleblock .tb-ctl { flex-wrap: nowrap; overflow-x: auto; gap: .6rem; padding: .5rem .7rem; }
     .nb { gap: 1.5rem; }
     main { padding-inline: .75rem !important; }
+    .nb .dock { margin-inline: -.75rem; padding-inline: .75rem; }
   }
+}
+
+/* ---- checkboxes and radios: large enough to hit ---- */
+@layer components {
+  input[type="checkbox"], input[type="radio"] { width: 1.15rem; height: 1.15rem; accent-color: var(--text); cursor: pointer; vertical-align: middle; }
+  @media (pointer: coarse), (max-width: 1023px) { input[type="checkbox"], input[type="radio"] { width: 1.5rem; height: 1.5rem; } }
 }

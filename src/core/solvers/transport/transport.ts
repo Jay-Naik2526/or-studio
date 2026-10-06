@@ -539,9 +539,10 @@ export interface MethodComparisonRow {
 
 export function compareInitialMethods(model: TransportModel): MethodComparisonRow[] {
   const solver = new TransportSolver();
-  return (['nwc', 'lcm', 'vam'] as InitialMethod[]).map(method => {
-    const sol = solver.solve(model, { variant: method, emitSteps: false });
-    const r = sol.result!;
-    return { method, initialCost: r.initialCost, iterations: r.modiIterations, finalCost: r.state.totalCost, state: r.state };
-  });
+  const rows: MethodComparisonRow[] = [];
+  for (const method of ['nwc', 'lcm', 'vam'] as InitialMethod[]) {
+    const r = solver.solve(model, { variant: method, emitSteps: false }).result;
+    if (r) rows.push({ method, initialCost: r.initialCost, iterations: r.modiIterations, finalCost: r.state.totalCost, state: r.state });
+  }
+  return rows;
 }

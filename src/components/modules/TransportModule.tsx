@@ -117,7 +117,7 @@ export default function TransportModule() {
         <Card title="Stepping-stone evaluation" icon={<ListTree size={14} />}><div className="overflow-x-auto"><table className="tbl text-xs"><thead><tr><th scope="col">Empty cell</th><th scope="col">Closed loop</th><th scope="col">Δ cost / unit</th></tr></thead><tbody>{(cur.state as TransportState).stoneEvals!.map((e, i) => <tr key={i}><th scope="row">{res?.rowLabels[e.row]} → {res?.colLabels[e.col]}</th><td className="!text-left">{e.loop.map(c => `${c.sign}${res?.rowLabels[c.row]}/${res?.colLabels[c.col]}`).join('  ')}</td><td className={e.change.isNegative() ? 'neg' : ''}><QM v={e.change} /></td></tr>)}</tbody></table></div></Card>
       )}
     </> },
-    { id: 'compare', label: <><BarChart3 size={13} /> Method comparison</>, node: comparison ? (
+    { id: 'compare', label: <><BarChart3 size={13} /> Method comparison</>, node: comparison?.length ? (
       <Card title="NWC vs Least-cost vs Vogel — same problem" right={<Badge kind="accent">F12</Badge>}>
         <div className="overflow-x-auto"><table className="tbl" aria-label="Method comparison"><thead><tr><th scope="col">Method</th><th scope="col">Initial cost</th><th scope="col">MODI iterations</th><th scope="col">Final cost</th></tr></thead><tbody>
           {comparison.map(r => <tr key={r.method} className={r.method === variant ? 'zrow' : ''}><th scope="row">{r.method === 'nwc' ? 'North-west corner' : r.method === 'lcm' ? 'Least-cost' : 'Vogel (VAM)'}</th><td><QM v={r.initialCost} /></td><td>{r.iterations}</td><td className="font-bold"><QM v={r.finalCost} /></td></tr>)}
@@ -139,9 +139,9 @@ export default function TransportModule() {
         <Card title="Costs, supply & demand">
           <div className="flex flex-col gap-3">
             <label className="flex items-center gap-2 text-xs">Example<select className="select" value="" aria-label="Load an example" onChange={e => { const x = libraryFor('transport')[Number(e.target.value)]; if (x) { setSpec(structuredClone(x.spec) as TransportSpec); if (x.variant) setVariant(x.variant as InitialMethod); setStep(0); } }}><option value="" disabled>Choose…</option>{libraryFor('transport').map((x, i) => <option key={x.id} value={i}>{x.title}</option>)}</select></label>
-            <Segmented label="Objective" value={spec.objective} onChange={o => setSpec({ ...spec, objective: o })} options={[{ value: 'min', label: 'Minimise cost' }, { value: 'max', label: 'Maximise profit' }]} />
-            <MatrixEditor caption="Unit costs" values={spec.costs} onChange={costs => setSpec({ ...spec, costs })} rowLabels={spec.rows} colLabels={spec.cols} onRowLabels={rows => setSpec({ ...spec, rows })} onColLabels={cols => setSpec({ ...spec, cols })}
-              rowExtra={{ label: 'Supply', values: spec.supply, onChange: supply => setSpec({ ...spec, supply }) }} colExtra={{ label: 'Demand', values: spec.demand, onChange: demand => setSpec({ ...spec, demand }) }} allowBlocked maxRows={8} maxCols={8} cornerLabel="from \ to" />
+            <Segmented label="Objective" value={spec.objective} onChange={o => setSpec(s => ({ ...s, objective: o }))} options={[{ value: 'min', label: 'Minimise cost' }, { value: 'max', label: 'Maximise profit' }]} />
+            <MatrixEditor caption="Unit costs" values={spec.costs} onChange={costs => setSpec(s => ({ ...s, costs }))} rowLabels={spec.rows} colLabels={spec.cols} onRowLabels={rows => setSpec(s => ({ ...s, rows }))} onColLabels={cols => setSpec(s => ({ ...s, cols }))}
+              rowExtra={{ label: 'Supply', values: spec.supply, onChange: supply => setSpec(s => ({ ...s, supply })) }} colExtra={{ label: 'Demand', values: spec.demand, onChange: demand => setSpec(s => ({ ...s, demand })) }} allowBlocked maxRows={8} maxCols={8} cornerLabel="from \ to" />
           </div>
         </Card>
         {error && <Callout kind="bad">{error}</Callout>}

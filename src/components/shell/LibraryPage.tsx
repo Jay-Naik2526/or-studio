@@ -19,7 +19,7 @@ export function LibraryPage() {
       <div className="flex flex-wrap gap-2 items-center">
         <label className="relative">
           <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 muted" aria-hidden="true" />
-          <input className="input !pl-7 !w-64" placeholder="Search problems…" value={q} onChange={e => setQ(e.target.value)} aria-label="Search problems" />
+          <input className="input !pl-7 !w-64 max-w-full" type="search" placeholder="Search problems…" value={q} onChange={e => setQ(e.target.value)} aria-label="Search problems" />
         </label>
         <div role="group" aria-label="Filter by module" className="flex flex-wrap gap-1">
           <button className="btn btn-sm" aria-pressed={mod === 'all'} onClick={() => setMod('all')}>All</button>
@@ -41,6 +41,7 @@ export function LibraryPage() {
         ))}
       </ul>
       {rows.length === 0 && <p className="muted text-sm">No problems match.</p>}
+      <p className="sr-only" role="status">{rows.length} {rows.length === 1 ? 'problem' : 'problems'} shown</p>
     </div>
   );
 }

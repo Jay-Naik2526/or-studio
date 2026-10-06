@@ -45,7 +45,9 @@ export function BBTree({ state, varNames, focus }: Props) {
   const [sel, setSel] = useState<number | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null);
-  const W = 760, H = Math.min(520, Math.max(260, h + 30));
+  // a narrower drawing on phones keeps node text readable after the tree is scaled to the screen
+  const narrow = typeof window !== 'undefined' && window.matchMedia?.('(max-width: 640px)').matches;
+  const W = narrow ? 460 : 760, H = Math.min(520, Math.max(260, h + 30));
   const fit = () => { const k = Math.min(1, (W - 20) / Math.max(w, 1), (H - 20) / Math.max(h, 1)); setView({ k, x: (W - w * k) / 2, y: 10 }); };
   useEffect(() => { fit(); }, [state.nodes.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const active = focus ?? state.activeNodeId;
