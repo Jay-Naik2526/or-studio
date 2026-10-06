@@ -1,0 +1,1 @@
+{ "name": "OR-Studio", "short_name": "OR-Studio", "description": "Step-visible Operations Research solver", "start_url": "./", "scope": "./", "display": "standalone", "background_color": "#0d1117", "theme_color": "#3b4cca", "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }] }
