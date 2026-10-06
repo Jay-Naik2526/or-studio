@@ -10,6 +10,23 @@ export class ErrorBoundary extends Component<{ children: ReactNode; resetKey?: s
   }
   render() {
     if (!this.state.error) return this.props.children;
+    const msg = this.state.error.message;
+    const chunk = /dynamically imported module|Failed to fetch|Importing a module script failed|Loading chunk|Unexpected token '<'|MIME type/i.test(msg);
+    if (chunk) {
+      return (
+        <div className="callout callout-warn" role="alert">
+          <AlertTriangle size={18} className="shrink-0" />
+          <div>
+            <div className="font-bold">This screen could not be downloaded.</div>
+            <div className="text-sm mt-1">The connection dropped, or the app was updated while this page was open. Reloading fetches a fresh copy — your work is autosaved.</div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <button className="btn btn-primary" onClick={() => window.location.reload()}>Reload</button>
+              <a className="btn" href="#/">Back to the overview</a>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="callout callout-bad" role="alert">
         <AlertTriangle size={18} className="shrink-0" />

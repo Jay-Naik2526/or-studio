@@ -26,11 +26,31 @@ function toInput(s: InventorySpec): InventoryInput {
   };
 }
 
+/** The first non-empty field that is not a number, so the message can name it (empty required fields are reported by the solver). */
+function firstBadNumber(s: InventorySpec): string | null {
+  const bad = (v: string) => v.trim() !== '' && plainNum(v) === null;
+  const common: [string, string][] = [['Demand D', s.D], ['Set-up cost K', s.K], ['Holding cost h', s.h], ['Unit cost c', s.c], ['Lead time L', s.L], ['Production rate k', s.k], ['Shortage cost p', s.p]];
+  const nv: [string, string][] = [['Selling price', s.price], ['Unit cost', s.c], ['Salvage value', s.salvage], ['Goodwill cost', s.goodwill], ['Mean', s.mean], ['Standard deviation', s.sd], ['Minimum demand', s.umin], ['Maximum demand', s.umax]];
+  const used: Record<InventorySpec['model'], string[]> = { eoq: ['Demand D', 'Set-up cost K', 'Holding cost h', 'Unit cost c', 'Lead time L'], epq: ['Demand D', 'Set-up cost K', 'Holding cost h', 'Unit cost c', 'Production rate k'], shortage: ['Demand D', 'Set-up cost K', 'Holding cost h', 'Unit cost c', 'Shortage cost p'], discount: ['Demand D', 'Set-up cost K', 'Holding cost h'], newsvendor: [] };
+  for (const [label, v] of common) if (used[s.model].includes(label) && bad(v)) return `${label}: “${v}” is not a number.`;
+  if (s.model === 'discount') for (const [i, b] of s.breaks.entries()) { if (bad(b.minQty) || b.minQty.trim() === '') return `Price break ${i + 1}: the quantity “${b.minQty}” is not a number.`; if (bad(b.price) || b.price.trim() === '') return `Price break ${i + 1}: the price “${b.price}” is not a number.`; }
+  if (s.model === 'newsvendor') {
+    const per: Record<InventorySpec['dist'], string[]> = { normal: ['Mean', 'Standard deviation'], uniform: ['Minimum demand', 'Maximum demand'], discrete: [] };
+    for (const [label, v] of nv) if (['Selling price', 'Unit cost', 'Salvage value', 'Goodwill cost', ...per[s.dist]].includes(label) && bad(v)) return `${label}: “${v}” is not a number.`;
+    if (s.dist === 'discrete') for (const [i, d] of s.discrete.entries()) { if (bad(d.demand) || d.demand.trim() === '') return `Demand row ${i + 1}: “${d.demand}” is not a number.`; if (bad(d.prob) || d.prob.trim() === '') return `Probability row ${i + 1}: “${d.prob}” is not a number.`; }
+  }
+  return null;
+}
+
 export default function InventoryModule() {
   const init = useInitial<InventorySpec>('inventory', DEFAULT);
   const [spec, setSpec] = useState<InventorySpec>(init.spec);
   const pngRef = useRef<HTMLElement | null>(null);
-  const res: InventoryResult = useMemo(() => solveInventory(toInput(spec)), [spec]);
+  const res: InventoryResult = useMemo(() => {
+    const bad = firstBadNumber(spec);
+    if (bad) return { model: spec.model, error: bad, steps: [], interpretation: [] };
+    return solveInventory(toInput(spec));
+  }, [spec]);
   const saved = useSaved('inventory', spec);
   const set = (p: Partial<InventorySpec>) => setSpec(s => ({ ...s, ...p }));
   const m = spec.model;

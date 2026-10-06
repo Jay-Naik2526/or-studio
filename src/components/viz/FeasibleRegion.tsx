@@ -84,8 +84,8 @@ export function FeasibleRegion({ model, onRhsChange, lattice, title }: Props) {
   };
   const onMove = (e: React.PointerEvent) => {
     if (drag.current === null || !onRhsChange) return;
-    const l = lines[drag.current]!;
-    if (l.ci === null) return;
+    const l = lines[drag.current];
+    if (!l || l.ci === null) return;
     const p = pointer(e);
     const raw = l.a * p.x + l.b * p.y;
     onRhsChange(l.ci, Math.round(raw * 2) / 2);
@@ -103,7 +103,7 @@ export function FeasibleRegion({ model, onRhsChange, lattice, title }: Props) {
     <Card title={title ?? "Graphical solution"} icon={<Target size={14} />} right={<Badge kind={sol.status === 'optimal' ? 'ok' : 'bad'}>{sol.status}</Badge>} bodyClass="p-2 sm:p-3">
       <div className="grid gap-3 2xl:grid-cols-[minmax(0,1fr)_minmax(200px,260px)]">
         <div className="flex flex-col gap-2 min-w-0">
-          <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="w-full h-auto select-none touch-none" role="img" aria-label={`Feasible region with ${sol.vertices.length} corner points. ${sol.status === 'optimal' ? `Optimal value ${sol.optimalValue}.` : sol.status}`} onPointerMove={onMove} onPointerUp={() => (drag.current = null)} onPointerLeave={() => (drag.current = null)}>
+          <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="w-full h-auto select-none touch-none" role="img" aria-label={`Feasible region with ${sol.vertices.length} corner points. ${sol.status === 'optimal' ? `Optimal value ${sol.optimalValue}.` : sol.status}`} onPointerMove={onMove} onPointerUp={() => (drag.current = null)} onPointerCancel={() => (drag.current = null)} onPointerLeave={() => (drag.current = null)}>
             {xt.map(t => <g key={`x${t}`}><line x1={X(t)} x2={X(t)} y1={M.t} y2={H - M.b} stroke="var(--border)" strokeWidth=".6" /><text x={X(t)} y={H - M.b + 14} fontSize="10" textAnchor="middle" fill="var(--text-3)">{t}</text></g>)}
             {yt.map(t => <g key={`y${t}`}><line y1={Y(t)} y2={Y(t)} x1={M.l} x2={W - M.r} stroke="var(--border)" strokeWidth=".6" /><text y={Y(t) + 3} x={M.l - 6} fontSize="10" textAnchor="end" fill="var(--text-3)">{t}</text></g>)}
             <line x1={X(0)} x2={X(0)} y1={M.t} y2={H - M.b} stroke="var(--border-strong)" /><line y1={Y(0)} y2={Y(0)} x1={M.l} x2={W - M.r} stroke="var(--border-strong)" />

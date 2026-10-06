@@ -44,7 +44,7 @@ export function BBTree({ state, varNames, focus }: Props) {
   const [view, setView] = useState({ k: 1, x: 0, y: 0 });
   const [sel, setSel] = useState<number | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; vx: number; vy: number; moved: boolean } | null>(null);
   const W = 760, H = Math.min(520, Math.max(260, h + 30));
   const fit = () => { const k = Math.min(1, (W - 20) / Math.max(w, 1), (H - 20) / Math.max(h, 1)); setView({ k, x: (W - w * k) / 2, y: 10 }); };
   useEffect(() => { fit(); }, [state.nodes.length]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -63,8 +63,21 @@ export function BBTree({ state, varNames, focus }: Props) {
       <div ref={wrap} className="overflow-hidden rounded-b-[10px] touch-none" style={{ background: 'var(--bg)' }}>
         <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto cursor-grab select-none" role="img" aria-label={`Branch and bound tree with ${state.nodes.length} nodes`}
           onWheel={e => { e.preventDefault(); const f = e.deltaY < 0 ? 1.1 : 1 / 1.1; setView(v => ({ ...v, k: Math.max(0.2, Math.min(3, v.k * f)) })); }}
-          onPointerDown={e => { drag.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }; (e.currentTarget as SVGElement).setPointerCapture(e.pointerId); }}
-          onPointerMove={e => { if (!drag.current) return; const r = (e.currentTarget as SVGElement).getBoundingClientRect(); const s = W / r.width; setView(v => ({ ...v, x: drag.current!.vx + (e.clientX - drag.current!.x) * s, y: drag.current!.vy + (e.clientY - drag.current!.y) * s })); }}
+          onPointerDown={e => { drag.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, moved: false }; }}
+          onPointerMove={e => {
+            const d = drag.current; // read now: a state updater runs later, after pointer-up may have cleared the ref
+            if (!d) return;
+            if (!d.moved) {
+              if (Math.hypot(e.clientX - d.x, e.clientY - d.y) < 5) return; // a tap, not a drag: keep node clicks working
+              d.moved = true;
+              try { (e.currentTarget as SVGElement).setPointerCapture(e.pointerId); } catch { /* pointer already gone */ }
+            }
+            const r = (e.currentTarget as SVGElement).getBoundingClientRect();
+            const s = W / Math.max(1, r.width);
+            const nx = d.vx + (e.clientX - d.x) * s, ny = d.vy + (e.clientY - d.y) * s;
+            setView(v => ({ ...v, x: nx, y: ny }));
+          }}
+          onPointerCancel={() => (drag.current = null)}
           onPointerUp={() => (drag.current = null)}>
           <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
             {[...pos.values()].flatMap(p => p.node.children.filter(c => pos.has(c)).map(c => {
