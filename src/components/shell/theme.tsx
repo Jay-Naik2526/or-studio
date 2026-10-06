@@ -6,7 +6,7 @@ const Ctx = createContext<{ theme: Theme; toggle: () => void }>({ theme: 'light'
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     try { const s = localStorage.getItem('or_theme'); if (s === 'dark' || s === 'light') return s; } catch { /* ignore */ }
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return 'light'; // light is the default; dark only when the user has chosen it
   });
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
