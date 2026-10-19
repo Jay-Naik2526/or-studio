@@ -1,21 +1,23 @@
 import { ReactNode, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Moon, Sun, Menu, X, Home, BookMarked, FileText, Info, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react';
+import { Moon, Sun, Menu, X, Home, BookMarked, BookOpen, FileText, Info, PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react';
 import { useRoute, href } from './lib/router';
 import { useTheme } from './components/shell/theme';
 import { Hub } from './components/shell/Hub';
 import { LibraryPage } from './components/shell/LibraryPage';
 import { AboutPage } from './components/shell/AboutPage';
 import { DocsPage } from './components/shell/DocsPage';
+import { GuidePage } from './components/shell/GuidePage';
 import { MODULES, moduleById } from './components/shell/registry';
 import { ErrorBoundary } from './components/shell/ErrorBoundary';
 import { CommandPalette } from './components/shell/CommandPalette';
+import { GlossaryLayer } from './components/ui/GlossaryLayer';
 import { resolveRoute, moduleKey } from './components/shell/routeUtil';
 import { isTypingTarget, modalOpen } from './components/ui/keys';
 import { useModal } from './components/ui/useModal';
 
 const GROUPS: { title: string; ids: string[] }[] = [
   { title: 'Optimise', ids: ['lp', 'integer', 'nlp'] },
-  { title: 'Flows & plans', ids: ['transport', 'assign', 'network', 'project'] },
+  { title: 'Flows & plans', ids: ['transport', 'assign', 'network', 'project', 'sequencing'] },
   { title: 'Uncertainty & decisions', ids: ['queuing', 'inventory', 'games', 'markov', 'simulation'] },
 ];
 
@@ -68,7 +70,7 @@ export default function App() {
     return () => mq.removeEventListener('change', on);
   }, []);
 
-  const crumb = mod ? mod.name : resolved.kind === 'library' ? 'Problem library' : resolved.kind === 'docs' ? 'Manual' : resolved.kind === 'about' ? 'About' : resolved.kind === 'hub' ? 'Overview' : 'Not found';
+  const crumb = mod ? mod.name : resolved.kind === 'library' ? 'Problem library' : resolved.kind === 'docs' ? 'Manual' : resolved.kind === 'guide' ? 'User guide' : resolved.kind === 'about' ? 'About' : resolved.kind === 'hub' ? 'Overview' : 'Not found';
   // per-route document title; on route changes (not the first load) focus moves to the new page for keyboard and screen-reader users
   const pageKey = resolved.kind === 'module' ? `m/${resolved.id}` : resolved.kind;
   const shownKey = useRef<string | null>(null);
@@ -96,6 +98,7 @@ export default function App() {
   const links = [
     { to: '/', label: 'Overview', icon: Home, active: resolved.kind === 'hub' },
     { to: '/library', label: 'Problem library', icon: BookMarked, active: resolved.kind === 'library' },
+    { to: '/guide', label: 'User guide (PDF)', icon: BookOpen, active: resolved.kind === 'guide' },
     { to: '/docs', label: 'Manual', icon: FileText, active: resolved.kind === 'docs' },
     { to: '/about', label: 'About', icon: Info, active: resolved.kind === 'about' },
   ];
@@ -164,6 +167,7 @@ export default function App() {
               {resolved.kind === 'library' && <LibraryPage />}
               {resolved.kind === 'about' && <AboutPage />}
               {resolved.kind === 'docs' && <DocsPage />}
+              {resolved.kind === 'guide' && <GuidePage />}
               {Mod && mod && <Mod key={moduleKey(mod.id, route.query)} />}
               {resolved.kind === 'unknown-module' && <div className="callout callout-bad" role="alert">{resolved.id ? <>Unknown module “{resolved.id}”.</> : <>No module was chosen.</>} <a href={href('/')} className="underline">Back to the overview</a></div>}
               {resolved.kind === 'not-found' && <div className="callout callout-warn" role="alert">Page not found. <a href={href('/')} className="underline">Back to the overview</a></div>}
@@ -171,6 +175,7 @@ export default function App() {
           </ErrorBoundary>
         </main>
       </div>
+      <GlossaryLayer />
       <CommandPalette open={pal} onClose={closePal} onToggleTheme={toggle} />
     </div>
   );

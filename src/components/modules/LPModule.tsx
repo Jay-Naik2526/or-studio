@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { Calculator, GitCompare, BarChart3, Target, Ban, ArrowRightLeft } from 'lucide-react';
+import { Calculator, GitCompare, BarChart3, Target, Ban, ArrowRightLeft, Repeat, Layers } from 'lucide-react';
 import { LPModel, SavedModel, Tableau } from '../../core/types/models';
 import { Rational } from '../../core/math/rational';
 import { solveLP, LPMethod, LPSolution } from '../../core/solvers/lp/engine';
@@ -17,6 +17,11 @@ import { LPInput, parseLPText } from '../input/LPInput';
 import { TableauView } from '../viz/TableauView';
 import { FeasibleRegion } from '../viz/FeasibleRegion';
 import { SensitivityView } from '../viz/SensitivityView';
+import { DualityBody } from '../viz/DualityView';
+import { BasicSolutionsBody } from '../viz/BasicSolutionsView';
+import { PrimalDualBody } from '../viz/PrimalDualView';
+import { dualityReport } from '../../core/solvers/lp/duality';
+import { enumerateBasicSolutions } from '../../core/solvers/lp/basicSolutions';
 import { Card, Callout, StatusBanner, statusKind, statusLabel, DiagnosticsList, Badge, Btn, Field } from '../ui/ui';
 import { Q } from '../ui/Q';
 import { Katex } from '../ui/Katex';
@@ -122,16 +127,17 @@ export default function LPModule() {
   const buildReport = () => {
     if (!sol || !model) return null;
     const res = sol.result;
+    const extra = reportExtras(model);
     return {
       title: 'Linear programme',
       module: 'Linear programming',
       method: sol.methodUsed === 'standard' ? 'Standard simplex' : sol.methodUsed === 'twoPhase' ? 'Two-phase simplex' : sol.methodUsed === 'bigM' ? 'Big-M simplex' : 'Dual simplex',
-      problem: formatLP(model),
+      problem: formatLP(model) + extra.problem,
       steps: stepsToReport(steps, s => tableauTable(s)),
       result: {
         heading: `Result: ${statusLabel(sol.status)}`,
         lines: res ? [`Objective value = ${res.objectiveValue.toString()}`, ...model.varNames.map((n, j) => `${n} = ${res.variableValues[j]!.toString()}`)] : [statusLabel(sol.status)],
-        tables: res ? [{ caption: 'Optimal solution', headers: ['Variable', 'Value'], rows: [...model.varNames.map((n, j) => [n, res.variableValues[j]!.toString()]), ['z', res.objectiveValue.toString()]] }, { caption: 'Constraints', headers: ['Constraint', 'Slack / surplus', 'Shadow price'], rows: model.constraints.map((c, i) => [c.name ?? `(${i + 1})`, res.slackValues[i]!.toString(), res.dualValues[i]!.toString()]) }] : undefined,
+        tables: res ? [{ caption: 'Optimal solution', headers: ['Variable', 'Value'], rows: [...model.varNames.map((n, j) => [n, res.variableValues[j]!.toString()]), ['z', res.objectiveValue.toString()]] }, { caption: 'Constraints', headers: ['Constraint', 'Slack / surplus', 'Shadow price'], rows: model.constraints.map((c, i) => [c.name ?? `(${i + 1})`, res.slackValues[i]!.toString(), res.dualValues[i]!.toString()]) }, ...extra.tables] : extra.tables.length ? extra.tables : undefined,
       },
       diagnostics: sol ? diagText(sol.diagnostics) : [],
     };
@@ -174,6 +180,9 @@ export default function LPModule() {
     },
     { id: 'graph', hidden: !model || model.objective.length !== 2, label: <span className="inline-flex items-center gap-1"><Target size={13} /> Graphical</span>, node: model && model.objective.length === 2 ? <FeasibleRegion model={model} onRhsChange={(i, v) => setText(formatLP({ ...model, constraints: model.constraints.map((c, k) => (k === i ? { ...c, rhs: Rational.parse(String(v)) } : c)) }))} /> : null },
     { id: 'sens', label: <span className="inline-flex items-center gap-1"><BarChart3 size={13} /> Sensitivity</span>, node: model && sol ? <SensitivityView model={model} solution={sol} /> : null },
+    { id: 'duality', label: <span className="inline-flex items-center gap-1"><ArrowRightLeft size={13} /> Duality</span>, node: model ? <DualityBody model={model} /> : <Card title="Duality"><p className="text-sm muted">Fix the model to see its dual.</p></Card> },
+    { id: 'basic', label: <span className="inline-flex items-center gap-1"><Layers size={13} /> Basic solutions</span>, node: model ? <BasicSolutionsBody model={model} status={sol?.status} /> : <Card title="Basic solutions"><p className="text-sm muted">Fix the model to list its basic solutions.</p></Card> },
+    { id: 'pd', label: <span className="inline-flex items-center gap-1"><Repeat size={13} /> Primal–dual</span>, node: model ? <PrimalDualBody model={model} /> : <Card title="Primal–dual"><p className="text-sm muted">Fix the model to run the primal–dual algorithm.</p></Card> },
     { id: 'diff', label: <span className="inline-flex items-center gap-1"><GitCompare size={13} /> Diff mode</span>, node: <TableauDiff steps={steps} /> },
   ];
 
@@ -206,6 +215,30 @@ export default function LPModule() {
       step={idx}
     />
   );
+}
+
+/** Dual formulation and basic-solution table appended to the exported report. */
+function reportExtras(model: LPModel): { problem: string; tables: { caption?: string; headers: string[]; rows: string[][] }[] } {
+  const tables: { caption?: string; headers: string[]; rows: string[][] }[] = [];
+  let problem = '';
+  try {
+    const d = dualityReport(model);
+    if (d.ok) {
+      problem += `\n\nDual problem:\n${d.build.displayText}`;
+      tables.push({ caption: 'Dual variables (shadow prices) and checks', headers: ['Item', 'Value'], rows: [
+        ...(d.y ? d.build.dual.varNames.map((n, i) => [`${n} (${d.build.correspondence.constraints[i]?.label ?? ''})`, d.y![i]!.toString()]) : []),
+        ...d.checks.map(c => [c.label, c.holds === null ? 'n/a' : c.holds ? 'holds' : 'FAILS']),
+      ] });
+    }
+  } catch { /* the report is still produced without the dual */ }
+  try {
+    const b = enumerateBasicSolutions(model);
+    if (b.ok) {
+      const rows = b.bases.slice(0, 200).map(x => [String(x.id), x.basisNames.join(', '), x.status === 'singular' ? 'not a basis' : x.status === 'infeasible' ? 'basic infeasible' : x.degenerate ? 'BFS (degenerate)' : 'BFS', x.point ? `(${x.point.map(v => v.toString()).join(', ')})` : '-', x.objective && x.status !== 'singular' ? x.objective.toString() + (x.optimal ? ' (optimal)' : '') : '-']);
+      tables.push({ caption: `Basic solutions (${b.total} candidate bases, ${b.counts.feasible} feasible${b.total > 200 ? ', first 200 shown' : ''})`, headers: ['#', 'Basic columns', 'Status', 'Original variables', 'z'], rows });
+    }
+  } catch { /* skip */ }
+  return { problem, tables };
 }
 
 function methodName(s: LPSolution): string {

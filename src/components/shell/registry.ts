@@ -19,7 +19,7 @@ function load<T extends ComponentType>(importer: () => Promise<{ default: T }>):
     }
   });
 }
-import { TrendingUp, Grid3x3, Link2, Share2, Layers, CalendarClock, Hourglass, Boxes, Swords, Dices, Shuffle, Sigma, LucideIcon } from 'lucide-react';
+import { ListOrdered, TrendingUp, Grid3x3, Link2, Share2, Layers, CalendarClock, Hourglass, Boxes, Swords, Dices, Shuffle, Sigma, LucideIcon } from 'lucide-react';
 import { ModuleId } from '../../data/specs';
 
 export interface ModuleInfo {
@@ -47,6 +47,7 @@ export const MODULES: ModuleInfo[] = [
   { id: 'games', name: 'Zero-sum games', short: 'GT', description: 'Saddle points, step-by-step dominance, graphical 2×n / m×2 solution and the exact LP method, with a payoff heatmap.', methods: ['Saddle point', 'Dominance', 'Graphical', 'LP'], icon: Swords, accent: '#0d9488', component: load(() => import('../modules/GamesModule')), beyondTora: 'Payoff heatmap and verified optimal strategies for both players.' },
   { id: 'markov', name: 'Markov chains', short: 'MC', description: 'n-step transitions, exact steady state, communicating classes, periodicity, absorbing analysis and first-passage times, with a state diagram and heatmap.', methods: ['n-step', 'Steady state', 'Absorbing', 'First passage'], icon: Shuffle, accent: '#c026d3', component: load(() => import('../modules/MarkovModule')), beyondTora: 'Animated convergence and chain classification.' },
   { id: 'simulation', name: 'Simulation', short: 'SIM', description: 'Seedable LCG/Mersenne Twister, Monte Carlo estimation with confidence intervals and convergence plot, and a multi-server discrete-event queue simulation with event trace.', methods: ['Monte Carlo', 'Queue sim', 'Distributions'], icon: Dices, accent: '#ea580c', component: load(() => import('../modules/SimulationModule')), beyondTora: 'Histograms, convergence plots and reproducible seeds.' },
+  { id: 'sequencing', name: 'Job sequencing', short: 'SEQ', description: 'Johnson’s rule for n jobs on two machines, the three-machine special case, the CDS heuristic and exact search for m machines — with a Gantt chart, idle times and total elapsed time.', methods: ['Johnson (2 machines)', '3 machines', 'CDS (m machines)', 'Exact search', 'Gantt chart'], icon: ListOrdered, accent: '#0f766e', component: load(() => import('../modules/SequencingModule')), beyondTora: 'Gantt chart with idle times and step-by-step Johnson’s rule.' },
   { id: 'nlp', name: 'Nonlinear programming', short: 'NLP', description: 'Gradient and Newton iterations with symbolic derivatives and contour plots, KKT verification, and exact quadratic programming.', methods: ['Gradient', 'Newton', 'KKT', 'QP'], icon: Sigma, accent: '#475569', component: load(() => import('../modules/NLPModule')), beyondTora: 'Contour plot with the iterate path.' },
 ];
 

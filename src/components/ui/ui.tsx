@@ -1,4 +1,4 @@
-import { ReactNode, ButtonHTMLAttributes, useId, useState } from 'react';
+import { ReactNode, ButtonHTMLAttributes, useEffect, useId, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Info, XCircle, ChevronDown, ChevronRight, Lightbulb } from 'lucide-react';
 import { Diagnostic } from '../../core/types/solver';
 
@@ -35,6 +35,13 @@ export function Callout({ kind = 'info', children, title }: { kind?: 'ok' | 'bad
 }
 
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode; title?: string }[]; label: string }) {
+  // a long option list scrolls sideways on phones: keep the selected option in view
+  const group = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = group.current?.querySelector<HTMLElement>('[aria-checked="true"]');
+    const box = group.current;
+    if (el && box && box.scrollWidth > box.clientWidth) box.scrollLeft = Math.max(0, el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2);
+  }, [value]);
   // radio-group keyboard model: one tab stop (the checked option); arrows move and select
   const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const dir = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
@@ -48,7 +55,7 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
     (e.currentTarget.querySelectorAll<HTMLElement>('[role=radio]')[n])?.focus();
   };
   return (
-    <div role="radiogroup" aria-label={label} onKeyDown={onKey} className="inline-flex max-w-full overflow-x-auto" style={{ border: '1px solid var(--accent-edge)', background: 'var(--surface)' }}>
+    <div ref={group} role="radiogroup" aria-label={label} onKeyDown={onKey} className="inline-flex max-w-full overflow-x-auto" style={{ border: '1px solid var(--accent-edge)', background: 'var(--surface)' }}>
       {options.map((o, i) => (
         <button key={o.value} type="button" role="radio" aria-checked={value === o.value} tabIndex={(options.some(x => x.value === value) ? value === o.value : i === 0) ? 0 : -1} title={o.title} onClick={() => onChange(o.value)}
           className="px-3 py-1.5 text-[0.84rem] font-semibold whitespace-nowrap shrink-0 cursor-pointer transition-colors hover:bg-[var(--surface-3)]"

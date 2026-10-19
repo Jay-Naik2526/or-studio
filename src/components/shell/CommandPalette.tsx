@@ -23,6 +23,7 @@ function PaletteBody({ onClose, onToggleTheme }: { onClose: () => void; onToggle
   const items = useMemo<Item[]>(() => [
     { id: 'p-home', group: 'Go to', label: 'Overview', code: '⌂', keywords: 'home hub start', run: () => navigate('/') },
     { id: 'p-lib', group: 'Go to', label: 'Problem library', hint: `${LIBRARY.length} worked problems`, code: '▤', keywords: 'examples textbook problems', run: () => navigate('/library') },
+    { id: 'p-guide', group: 'Go to', label: 'User guide (PDF)', hint: 'read online or download', code: '▣', keywords: 'help manual tutorial how to use pdf download guide', run: () => navigate('/guide') },
     { id: 'p-docs', group: 'Go to', label: 'Manual', code: '?', keywords: 'docs help guide shortcuts', run: () => navigate('/docs') },
     { id: 'p-about', group: 'Go to', label: 'About', code: 'i', keywords: 'about info licence', run: () => navigate('/about') },
     { id: 'a-theme', group: 'Action', label: 'Switch light / dark theme', code: '◐', keywords: 'theme dark light mode appearance', run: onToggleTheme },

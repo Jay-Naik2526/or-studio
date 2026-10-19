@@ -17,6 +17,7 @@ export type ModuleCategory =
   | 'games'
   | 'markov'
   | 'simulation'
+  | 'sequencing'
   | 'nonlinear';
 
 export type TerminationStatus =

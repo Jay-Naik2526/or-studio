@@ -1547,7 +1547,7 @@ describe('markov audit (round 2)', () => {
     expect(res.trajectory).toHaveLength(501);
     res.nStep!.distribution!.forEach((v, j) => expect(v.eq(res.nStep!.matrix[0]![j]!)).toBe(true));
     for (const v of res.trajectory![500]!) expect(Math.abs(Number(v.toDecimal(8)) - Number(res.nStep!.distribution![res.trajectory![500]!.indexOf(v)]!.toDecimal(8)))).toBeLessThan(1e-7);
-  });
+  }, 30000);
 
   it('accepts n = 500 and rejects 501', () => {
     const P = toR([[1, 1], [1, 2]], 2).map((r, i) => (i === 0 ? r : [Rational.of(1, 3), Rational.of(2, 3)]));

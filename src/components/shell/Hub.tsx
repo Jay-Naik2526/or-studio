@@ -1,4 +1,4 @@
-import { ArrowUpRight, BookMarked, Search } from 'lucide-react';
+import { ArrowUpRight, BookMarked, BookOpen, Search } from 'lucide-react';
 import { MODULES } from './registry';
 import { recentModules } from '../../lib/persist';
 import { href } from '../../lib/router';
@@ -6,7 +6,7 @@ import { LIBRARY } from '../../data/library';
 
 const SECTIONS: { title: string; note: string; ids: string[] }[] = [
   { title: 'Optimise', note: 'Linear, integer and nonlinear models', ids: ['lp', 'integer', 'nlp'] },
-  { title: 'Flows & plans', note: 'Networks, allocation and scheduling', ids: ['transport', 'assign', 'network', 'project'] },
+  { title: 'Flows & plans', note: 'Networks, allocation and scheduling', ids: ['transport', 'assign', 'network', 'project', 'sequencing'] },
   { title: 'Uncertainty & decisions', note: 'Queues, stock, games, chains, simulation', ids: ['queuing', 'inventory', 'games', 'markov', 'simulation'] },
 ];
 
@@ -56,15 +56,16 @@ export function Hub() {
           <p className="eyebrow mb-4">Operations research workbench · sheet 00</p>
           <h1 className="display text-[2.7rem] sm:text-[3.9rem] leading-[0.98] font-bold">Every pivot,<br /><span className="hl">explained.</span></h1>
           <p className="mt-6 max-w-xl text-[1.08rem] leading-relaxed" style={{ color: 'var(--text-2)' }}>
-            Twelve solvers in exact fractions. Step through each tableau, practise the decisions in Tutor mode, compare your hand working in Diff mode, and export a complete solution. Runs offline — nothing leaves your browser.
+            Thirteen solvers in exact fractions. Step through each tableau, practise the decisions in Tutor mode, compare your hand working in Diff mode, and export a complete solution. Runs offline — nothing leaves your browser.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <a className="btn btn-primary !px-5 !py-2.5 !text-[1rem]" href={href('/m/lp')}>Open the simplex solver <ArrowUpRight size={16} /></a>
             <a className="btn !px-4 !py-2.5" href={href('/library')}><BookMarked size={15} /> {LIBRARY.length} worked problems</a>
+            <a className="btn !px-4 !py-2.5" href={href('/guide')}><BookOpen size={15} /> User guide</a>
             <span className="muted text-[0.9rem] inline-flex items-center gap-2"><Search size={14} aria-hidden="true" /> or press <span className="kbd">/</span> to search anything</span>
           </div>
           <dl className="mt-9 grid grid-cols-3 max-w-xl" style={{ border: '1px solid var(--line)', background: 'var(--surface)' }}>
-            {[['12', 'solver modules'], ['∞', 'exact rationals'], ['0', 'servers needed']].map(([a, b], i) => (
+            {[['13', 'solver modules'], ['∞', 'exact rationals'], ['0', 'servers needed']].map(([a, b], i) => (
               <div key={b} className="px-4 py-3" style={{ borderLeft: i ? '1px solid var(--line)' : 'none' }}>
                 <dt className="mono text-[1.9rem] font-bold leading-none">{a}</dt>
                 <dd className="eyebrow mt-1.5">{b}</dd>

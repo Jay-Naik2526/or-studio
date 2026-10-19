@@ -55,7 +55,7 @@ export function normalizeSaved(obj: unknown, fallbackTitle = 'Imported model'): 
   return out;
 }
 
-export const MODULE_IDS = ['lp', 'integer', 'nlp', 'transport', 'assign', 'network', 'project', 'queuing', 'inventory', 'games', 'markov', 'simulation'];
+export const MODULE_IDS = ['lp', 'integer', 'nlp', 'transport', 'assign', 'network', 'project', 'queuing', 'inventory', 'games', 'markov', 'simulation', 'sequencing'];
 
 /** Saved models, newest first. Corrupt entries are skipped rather than breaking the list. */
 export function listModels(moduleId?: string): SavedModel[] {

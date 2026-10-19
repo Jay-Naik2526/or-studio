@@ -1,0 +1,1432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OR/Studio user guide</title>
+<meta name="description" content="Step-by-step user guide for OR/Studio, a free Operations Research solver that runs in the browser.">
+<meta name="author" content="Dr. Praveenkumar Loharkar">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>/*%%FONTS%%*/</style>
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+
+<!-- ============================== COVER ============================== -->
+<section class="cover" id="s-cover">
+  <div class="in">
+    <div class="brand">
+      <svg width="46" height="46" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" fill="#C8F43A" stroke="#0A1222" stroke-width="2"/><path d="M6 24 L13 11 L18 19 L26 7" fill="none" stroke="#0A1222" stroke-width="2.6" stroke-linecap="square" stroke-linejoin="miter"/><circle cx="26" cy="7" r="2.4" fill="#0A1222"/></svg>
+      <div class="wm">OR<span>/</span>Studio</div>
+    </div>
+    <div class="kicker"><i>User guide</i> &nbsp; Operations Research workbench</div>
+    <div class="h1w"><h1>OR/Studio <br><span class="hl">user guide</span></h1></div>
+    <div class="tag2w">Learn every solver, from typing a problem to reading the answer. Written for engineering students and their teachers.</div>
+    <table class="tblk">
+      <tr><td class="k">Document</td><td colspan="3"><b>OR/Studio user guide</b> &nbsp;·&nbsp; free, step-by-step Operations Research solver</td></tr>
+      <tr><td class="k">App version</td><td style="width:42mm"><b>%%VERSION%%</b> &nbsp;·&nbsp; 13 modules</td><td class="k" style="width:27mm">Edition</td><td>October 2026</td></tr>
+      <tr><td class="k">Course</td><td colspan="3">Operations Research &nbsp;·&nbsp; 702CO0E034 &nbsp;·&nbsp; NMIMS Shirpur</td></tr>
+      <tr><td class="k">Guide by</td><td colspan="3"><b>Dr. Praveenkumar Loharkar</b></td></tr>
+      <tr><td class="k">Live app</td><td>or-studio.antideploy.app</td><td class="k">Licence</td><td>MIT, free to use and share</td></tr>
+      <tr><td class="k">Source code</td><td colspan="3">github.com/Jay-Naik2526/or-studio</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============================== READ FIRST + CONTENTS ============================== -->
+<section class="chap" id="s-read">
+  <header class="tb"><div class="code">00</div><div class="main"><div class="lab">00 / How to read this guide</div><h1>How to read this guide</h1><p class="sub">Who it is for, how it is organised, and a clickable list of everything inside.</p></div><div class="meta"><span>Sheet</span><b>00 of 25</b><span>User guide</span></div></header>
+
+  <p class="lead">This guide shows you how to use <span class="hl">OR/Studio</span>, a free solver for Operations Research. You do not need to know the app. You do not need to install anything. You only need a web browser.</p>
+
+  <div class="pair" style="align-items:stretch">
+    <div>
+      <p class="part" style="margin-top:0"><span class="pn">A</span>Who it is for</p>
+      <ul class="dots">
+        <li><b>Students</b> who learn Operations Research and want to check their hand work.</li>
+        <li><b>Teachers</b> who want to show every step on a screen, or set practice work.</li>
+        <li><b>Anyone</b> who needs a quick answer to a planning problem.</li>
+      </ul>
+    </div>
+    <div>
+      <p class="part" style="margin-top:0"><span class="pn">B</span>How it is organised</p>
+      <ul class="dots">
+        <li><b>Chapters 1 to 7</b> explain the app: how to find your way, enter a problem, learn with it, and save your work.</li>
+        <li><b>Chapters 8 to 20</b> cover one module each. All use the same seven parts.</li>
+        <li><b>Walk-throughs A to C</b> follow three full problems. <b>Chapters 21 to 25</b> are for reference.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="part"><span class="pn">C</span>The signs used in this guide</p>
+  <table class="t">
+    <colgroup><col style="width:36%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row"><code>max 3x1 + 5x2</code></th><td>Text in this style is what you <b>type</b> or what the screen <b>shows</b>.</td></tr>
+      <tr><th scope="row"><kbd>←</kbd> <kbd>→</kbd> <kbd>Space</kbd></th><td>Keyboard keys. <kbd>Ctrl/⌘</kbd> means Ctrl on Windows and Linux, and Command on a Mac.</td></tr>
+      <tr><th scope="row"><span class="hl">Highlighted words</span></th><td>The most important idea on that line.</td></tr>
+      <tr><th scope="row"><span class="chip">TIP</span> &nbsp; <span class="chip a">WATCH OUT</span></th><td>A tip saves you time. A <i>watch out</i> box warns you about a common mistake.</td></tr>
+      <tr><th scope="row">01 Model &nbsp; 02 Solution</th><td>The two parts of every workspace. <b>Model</b> is what you type. <b>Solution</b> is what the app gives back.</td></tr>
+    </tbody>
+  </table>
+  <p>Technical words are explained the first time they appear. All short forms (such as RHS, BFS or MODI) are also listed in the <a href="#s-glossary">glossary</a> in chapter 22. In the app you can also hover over most short forms to see their meaning.</p>
+
+  <p class="part"><span class="pn">D</span>Where to start</p>
+  <table class="t zebra">
+    <colgroup><col style="width:36%"><col></colgroup>
+    <thead><tr><th>If you…</th><th>Read</th></tr></thead>
+    <tbody>
+      <tr><td>have never seen the app</td><td>Chapters <a href="#s-start">2</a>, <a href="#s-find">3</a> and <a href="#s-work">4</a>. Then do <a href="#s-wa">Walk-through A</a>.</td></tr>
+      <tr><td>need to solve a problem now</td><td><a href="#s-enter">Chapter 5</a>, then the chapter of your module.</td></tr>
+      <tr><td>want to practise for an exam</td><td><a href="#s-learn">Chapter 6</a> (Tutor mode, Diff mode and the problem library).</td></tr>
+      <tr><td>teach with the app</td><td><a href="#s-learn">Chapter 6</a> (presentation mode) and <a href="#s-save">chapter 7</a> (share links, reports).</td></tr>
+      <tr><td>see a strange message</td><td><a href="#s-results">Chapter 21</a> and <a href="#s-faq">chapter 23</a>.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="chap" id="s-contents" style="break-before:page">
+  <header class="tb"><div class="code">≡</div><div class="main"><div class="lab">Contents</div><h1>Contents</h1><p class="sub">Click any line to jump to it. In the PDF viewer, the bookmarks list also shows every chapter.</p></div><div class="meta"><span>Sheet</span><b>00</b><span>User guide</span></div></header>
+  <table class="toc">
+    <tr class="grp"><td colspan="4">The basics</td></tr>
+    <tr><td class="n"><span>01</span></td><td><a href="#s-what">What OR/Studio is, and is not</a></td><td class="d">The 13 modules at a glance</td><td class="p"><span data-pg="s-what"></span></td></tr>
+    <tr><td class="n"><span>02</span></td><td><a href="#s-start">Getting started</a></td><td class="d">Open, install, privacy, theme, phone</td><td class="p"><span data-pg="s-start"></span></td></tr>
+    <tr><td class="n"><span>03</span></td><td><a href="#s-find">Finding your way</a></td><td class="d">Rail, top bar, search, shortcuts</td><td class="p"><span data-pg="s-find"></span></td></tr>
+    <tr><td class="n"><span>04</span></td><td><a href="#s-work">The workspace explained</a></td><td class="d">Every part of the screen</td><td class="p"><span data-pg="s-work"></span></td></tr>
+    <tr><td class="n"><span>05</span></td><td><a href="#s-enter">Entering a problem</a></td><td class="d">Text, form, grids, graphs, paste</td><td class="p"><span data-pg="s-enter"></span></td></tr>
+    <tr><td class="n"><span>06</span></td><td><a href="#s-learn">Learning tools</a></td><td class="d">Step player, Tutor, Diff, library</td><td class="p"><span data-pg="s-learn"></span></td></tr>
+    <tr><td class="n"><span>07</span></td><td><a href="#s-save">Save, share and export</a></td><td class="d">Autosave, link, PDF, LaTeX, CSV</td><td class="p"><span data-pg="s-save"></span></td></tr>
+    <tr class="grp"><td colspan="4">The 13 modules</td></tr>
+    <tr><td class="n"><span>08</span></td><td><a href="#s-lp">Linear programming</a></td><td class="d">Simplex, Graphical, Sensitivity, Duality</td><td class="p"><span data-pg="s-lp"></span></td></tr>
+    <tr><td class="n"><span>09</span></td><td><a href="#s-integer">Integer programming</a></td><td class="d">Branch and bound, Gomory cuts</td><td class="p"><span data-pg="s-integer"></span></td></tr>
+    <tr><td class="n"><span>10</span></td><td><a href="#s-nlp">Nonlinear programming</a></td><td class="d">Gradient, Newton, KKT, quadratic</td><td class="p"><span data-pg="s-nlp"></span></td></tr>
+    <tr><td class="n"><span>11</span></td><td><a href="#s-transport">Transportation</a></td><td class="d">NW corner, least cost, Vogel, MODI</td><td class="p"><span data-pg="s-transport"></span></td></tr>
+    <tr><td class="n"><span>12</span></td><td><a href="#s-assign">Assignment</a></td><td class="d">Hungarian method</td><td class="p"><span data-pg="s-assign"></span></td></tr>
+    <tr><td class="n"><span>13</span></td><td><a href="#s-network">Network models</a></td><td class="d">Shortest path, spanning tree, max flow</td><td class="p"><span data-pg="s-network"></span></td></tr>
+    <tr><td class="n"><span>14</span></td><td><a href="#s-project">Project planning</a></td><td class="d">CPM, PERT, crashing</td><td class="p"><span data-pg="s-project"></span></td></tr>
+    <tr><td class="n"><span>15</span></td><td><a href="#s-queuing">Queuing analysis</a></td><td class="d">M/M/1, M/M/c, finite queues</td><td class="p"><span data-pg="s-queuing"></span></td></tr>
+    <tr><td class="n"><span>16</span></td><td><a href="#s-inventory">Inventory</a></td><td class="d">EOQ, EPQ, shortages, discounts, newsvendor</td><td class="p"><span data-pg="s-inventory"></span></td></tr>
+    <tr><td class="n"><span>17</span></td><td><a href="#s-games">Zero-sum games</a></td><td class="d">Saddle point, dominance, mixed strategies</td><td class="p"><span data-pg="s-games"></span></td></tr>
+    <tr><td class="n"><span>18</span></td><td><a href="#s-markov">Markov chains</a></td><td class="d">n-step, steady state, absorbing</td><td class="p"><span data-pg="s-markov"></span></td></tr>
+    <tr><td class="n"><span>19</span></td><td><a href="#s-simulation">Simulation</a></td><td class="d">Monte Carlo, queue, demand, inventory, RNG</td><td class="p"><span data-pg="s-simulation"></span></td></tr>
+    <tr><td class="n"><span>20</span></td><td><a href="#s-sequencing">Job sequencing</a></td><td class="d">Johnson, CDS, exact, Gantt</td><td class="p"><span data-pg="s-sequencing"></span></td></tr>
+    <tr class="grp"><td colspan="4">Worked walk-throughs</td></tr>
+    <tr><td class="n"><span>A</span></td><td><a href="#s-wa">Reddy Mikks, from typing to shadow prices</a></td><td class="d">Linear programming</td><td class="p"><span data-pg="s-wa"></span></td></tr>
+    <tr><td class="n"><span>B</span></td><td><a href="#s-wb">Experiment 10, activity 1: demand simulation</a></td><td class="d">Simulation</td><td class="p"><span data-pg="s-wb"></span></td></tr>
+    <tr><td class="n"><span>C</span></td><td><a href="#s-wc">Experiment 10, activity 4: Johnson's rule</a></td><td class="d">Job sequencing</td><td class="p"><span data-pg="s-wc"></span></td></tr>
+    <tr class="grp"><td colspan="4">Reference</td></tr>
+    <tr><td class="n"><span>21</span></td><td><a href="#s-results">Reading results</a></td><td class="d">Infeasible, Unbounded, Degenerate…</td><td class="p"><span data-pg="s-results"></span></td></tr>
+    <tr><td class="n"><span>22</span></td><td><a href="#s-glossary">Glossary of short forms</a></td><td class="d">%%GLOSSARY_COUNT%% entries</td><td class="p"><span data-pg="s-glossary"></span></td></tr>
+    <tr><td class="n"><span>23</span></td><td><a href="#s-faq">Troubleshooting and FAQ</a></td><td class="d">When something looks wrong</td><td class="p"><span data-pg="s-faq"></span></td></tr>
+    <tr><td class="n"><span>24</span></td><td><a href="#s-syllabus">Syllabus map</a></td><td class="d">Course 702CO0E034 to modules</td><td class="p"><span data-pg="s-syllabus"></span></td></tr>
+    <tr><td class="n"><span>25</span></td><td><a href="#s-about">About</a></td><td class="d">Credits and licence</td><td class="p"><span data-pg="s-about"></span></td></tr>
+  </table>
+</section>
+
+<!-- ============================== 1 WHAT IT IS ============================== -->
+<section class="chap" id="s-what">
+  <header class="tb"><div class="code">01</div><div class="main"><div class="lab">01 / What OR/Studio is</div><h1>What OR/Studio is, and is not</h1><p class="sub">A free workbench that solves Operations Research problems and explains every step.</p></div><div class="meta"><span>Sheet</span><b>01 of 25</b><span>User guide</span></div></header>
+
+  <p class="lead"><b>Operations Research</b> (OR) uses maths to make good decisions: how much to make, where to ship, which job to do first, how many staff to hire. <span class="hl">OR/Studio</span> is a website that solves these problems for you, and <b>shows how</b>.</p>
+
+  <p class="part"><span class="pn">1</span>What it is</p>
+  <ul class="dots">
+    <li><b>A solver and a teacher in one.</b> It gives the answer, then lets you move through the working one step at a time, with a short reason for each step.</li>
+    <li><b>Exact.</b> It keeps fractions as fractions: 1/3 stays 1/3 and is never rounded to 0.333. This makes special cases (such as ties and cycling) easy to detect.</li>
+    <li><b>Free and private.</b> No account, no server, no payment. Everything runs on your own device. It works offline after the first visit.</li>
+    <li><b>Made for learning.</b> A step player, a Tutor mode that asks you to choose each move, a Diff mode that finds your mistake, and 66 worked problems.</li>
+    <li><b>Open source.</b> MIT licence. Anyone can read, copy and improve the code.</li>
+  </ul>
+
+  <p class="part"><span class="pn">2</span>What it is not</p>
+  <ul class="dots">
+    <li><b>Not an industrial solver.</b> It is made for textbook-size problems (up to a few hundred variables). Use professional software for very large models.</li>
+    <li><b>Not a replacement for learning.</b> It shows the method, but you still need to understand the idea. Use it to check your own work.</li>
+    <li><b>Not always exact.</b> Linear, integer, transport, assignment, network, game and Markov solvers use exact fractions. Queues, inventory and simulation use ordinary decimal numbers, as is normal for these topics.</li>
+    <li><b>Not connected to the TORA software.</b> It follows the same textbook course (Taha, <i>Operations Research: An Introduction</i>) but is a separate program.</li>
+  </ul>
+
+  <figure class="w70"><img src="assets/hub.jpg" alt="The OR/Studio overview page"><figcaption><b>Fig 1.1</b> · The overview page. The cards lead to the 13 modules, and the search box finds anything.</figcaption></figure>
+
+  <p class="part" style="margin-top:2mm"><span class="pn">3</span>The 13 modules at a glance</p>
+  <table class="t zebra">
+    <colgroup><col style="width:21%"><col style="width:46%"><col></colgroup>
+    <thead><tr><th>Module</th><th>What it solves</th><th>Who needs it</th></tr></thead>
+    <tbody>
+      <tr><th scope="row"><a href="#s-lp">Linear programming</a></th><td>Best mix of products or resources under straight-line limits. Simplex, Two-Phase, Big-M, Dual, Graphical, Sensitivity, Duality.</td><td>Product mix, blending and diet problems; Unit 2.</td></tr>
+      <tr><th scope="row"><a href="#s-integer">Integer programming</a></th><td>The same, but some answers must be whole numbers or yes/no. Branch and bound, Gomory cuts.</td><td>Anything counted in whole units: machines, projects, items in a bag.</td></tr>
+      <tr><th scope="row"><a href="#s-nlp">Nonlinear programming</a></th><td>Best value of a curved function. Gradient, Newton, KKT check, quadratic programs.</td><td>Optimisation with curves; advanced students.</td></tr>
+      <tr><th scope="row"><a href="#s-transport">Transportation</a></th><td>Cheapest way to ship goods from sources to destinations. NW corner, least cost, Vogel, MODI.</td><td>Logistics and supply planning; Unit 4.</td></tr>
+      <tr><th scope="row"><a href="#s-assign">Assignment</a></th><td>Best one-to-one match of workers to jobs. Hungarian method.</td><td>Task allocation, timetables; Unit 4.</td></tr>
+      <tr><th scope="row"><a href="#s-network">Network models</a></th><td>Shortest route, cheapest spanning tree, maximum flow with minimum cut.</td><td>Roads, pipes, cables, data networks.</td></tr>
+      <tr><th scope="row"><a href="#s-project">Project planning</a></th><td>Project length and critical path. CPM, PERT, time-cost crashing, Gantt chart.</td><td>Project managers and construction; Unit 5.</td></tr>
+      <tr><th scope="row"><a href="#s-queuing">Queuing analysis</a></th><td>Waiting lines: waiting time, queue length, number of servers.</td><td>Banks, call centres, service desks.</td></tr>
+      <tr><th scope="row"><a href="#s-inventory">Inventory</a></th><td>How much to order and when. EOQ, production lots, shortages, discounts, newsvendor.</td><td>Stores, factories, supply chains.</td></tr>
+      <tr><th scope="row"><a href="#s-games">Zero-sum games</a></th><td>Best strategies for two opponents. Saddle point, dominance, mixed strategies.</td><td>Competition and decision making; Unit 6.</td></tr>
+      <tr><th scope="row"><a href="#s-markov">Markov chains</a></th><td>Systems that move between states by chance: n-step, steady state, absorbing chains.</td><td>Weather, brand switching, reliability.</td></tr>
+      <tr><th scope="row"><a href="#s-simulation">Simulation</a></th><td>Learning from random trials: Monte Carlo, queue, demand table, inventory, random-number lab.</td><td>Systems too hard for a formula; Unit 7 and Experiment 10.</td></tr>
+      <tr><th scope="row"><a href="#s-sequencing">Job sequencing</a></th><td>Best order of jobs on 2, 3 or more machines. Johnson, CDS, exact search, Gantt chart.</td><td>Workshops and production lines; Unit 7 and Experiment 10.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================== 2 GETTING STARTED ============================== -->
+<section class="chap" id="s-start">
+  <header class="tb"><div class="code">02</div><div class="main"><div class="lab">02 / Getting started</div><h1>Getting started</h1><p class="sub">Open the app, use it offline, keep your work private, and use it on a phone.</p></div><div class="meta"><span>Sheet</span><b>02 of 25</b><span>User guide</span></div></header>
+
+  <p class="part"><span class="pn">1</span>Open it in any browser</p>
+  <ol class="steps">
+    <li>Open a modern browser: Chrome, Edge, Firefox, Safari or Brave.</li>
+    <li>Go to <b>or-studio.antideploy.app</b>. The overview page opens.</li>
+    <li>Click a module card, or press <kbd>/</kbd> and type what you want. Try <code>reddy</code>.</li>
+  </ol>
+  <p>There is nothing to install and no sign-in. The first visit needs the internet.</p>
+
+  <p class="part"><span class="pn">2</span>Use it offline</p>
+  <p>After your first visit, the app saves itself in the browser. Next time it opens even without the internet. When you are online again, the app checks for a newer version each time you open it. See the <a href="#s-faq">FAQ</a> to force an update.</p>
+  <div class="box tip"><span class="tag">Tip</span>Before an exam or a trip, open the app once while you are online. Then you can use it on a plane or in a lab with no network.</div>
+
+  <p class="part"><span class="pn">3</span>Install it as an app</p>
+  <p>OR/Studio is a <i>progressive web app</i>. That means your browser can put it on your desktop or home screen, so it opens in its own window like any other program.</p>
+  <table class="t">
+    <colgroup><col style="width:30%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row">Chrome, Edge, Brave (computer)</th><td>Click the <b>install</b> icon at the right end of the address bar, or open the browser menu and choose <b>Install OR-Studio</b>.</td></tr>
+      <tr><th scope="row">Android (Chrome)</th><td>Open the menu and choose <b>Install app</b> or <b>Add to Home screen</b>.</td></tr>
+      <tr><th scope="row">iPhone or iPad (Safari)</th><td>Tap <b>Share</b>, then <b>Add to Home Screen</b>.</td></tr>
+    </tbody>
+  </table>
+  <p class="sm mut">The exact words depend on your browser version. If you do not see an install option, you can keep using the website normally.</p>
+
+  <p class="part"><span class="pn">4</span>Your work stays on your device</p>
+  <ul class="dots">
+    <li>OR/Studio has <b>no server</b>. The solving happens inside your browser. Your problems are never sent anywhere.</li>
+    <li>Your work is saved in your browser's own storage on this device only. Clearing the browser's site data removes it.</li>
+    <li>A <b>share link</b> holds the whole model inside the link itself. Anyone who has the link can open your model, so share it only with people you trust.</li>
+  </ul>
+
+  <p class="part"><span class="pn">5</span>Light and dark theme</p>
+  <p>Use the <b>moon / sun button</b> in the top bar to switch. The app opens in the light theme and remembers your choice. You can also open the search box (<kbd>/</kbd>) and run <b>Switch light / dark theme</b>. Printed reports always use a clean light layout.</p>
+
+  <p class="part"><span class="pn">6</span>Using it on a phone</p>
+  <div class="pair">
+    <div>
+      <ul class="dots">
+        <li>The left rail turns into a <b>menu button</b> (three lines, top right). Tap it to see all modules.</li>
+        <li>On a narrow screen the <b>01 Model</b> card starts closed to save space. Tap <b>Show</b> to type your problem, and <b>Hide</b> when done.</li>
+        <li>The step player shows <b>Previous / Play / Next</b> and the slider. The first/last and speed buttons are hidden to save space.</li>
+        <li>On a touch screen, <b>tap</b> a short form (such as RHS) to see its meaning.</li>
+        <li>Turn the phone sideways to see wide tables.</li>
+      </ul>
+    </div>
+    <figure class="half center" style="width:70%"><img src="assets/phone.jpg" alt="OR/Studio on a phone"><figcaption><b>Fig 2.1</b> · The workspace on a phone. The model is hidden until you tap Show.</figcaption></figure>
+  </div>
+</section>
+
+<!-- ============================== 3 FINDING YOUR WAY ============================== -->
+<section class="chap" id="s-find">
+  <header class="tb"><div class="code">03</div><div class="main"><div class="lab">03 / Finding your way</div><h1>Finding your way</h1><p class="sub">The left rail, the top bar, the search box, hover help and keyboard shortcuts.</p></div><div class="meta"><span>Sheet</span><b>03 of 25</b><span>User guide</span></div></header>
+
+  <p class="part"><span class="pn">1</span>The left rail</p>
+  <p>On a computer, a narrow <b>rail</b> runs down the left side. It has two parts.</p>
+  <ul class="dots">
+    <li><b>Pages:</b> Overview (home), Problem library, Manual and About.</li>
+    <li><b>Modules,</b> in three groups, each with a short code (LP, IP, NLP…): <i>Optimise</i> (LP, IP, NLP), <i>Flows and plans</i> (TP, AP, NET, PM, SEQ) and <i>Uncertainty and decisions</i> (Q, INV, GT, MC, SIM).</li>
+  </ul>
+  <p>On wide screens (about 1560 pixels and more) the rail shows full names. On smaller screens it shows only the codes. Use <b>Collapse</b> or <b>Expand</b> at the bottom of the rail to change this. The current page is highlighted in lime.</p>
+
+  <p class="part"><span class="pn">2</span>The top bar</p>
+  <ul class="dots">
+    <li><b>Breadcrumb</b> on the left: <code>OR/STUDIO / LINEAR PROGRAMMING</code> shows where you are. Click <b>OR/STUDIO</b> to go home.</li>
+    <li><b>Search box</b> in the middle-right (see below).</li>
+    <li><b>Theme button</b> (moon or sun).</li>
+    <li><b>Menu button</b> (phone and small screens only).</li>
+  </ul>
+
+  <p class="part"><span class="pn">3</span>The search palette</p>
+  <p>The fastest way to move around. Press <kbd>/</kbd> or <kbd>Ctrl/⌘</kbd> + <kbd>K</kbd>, or click the search box. Type a few letters. The list shows pages, modules, methods and worked problems that match. Use <kbd>↑</kbd> <kbd>↓</kbd> to choose and <kbd>↵</kbd> to open. Press <kbd>Esc</kbd> to close.</p>
+  <div class="pair">
+    <figure><img src="assets/palette.jpg" alt="The search palette showing results for the word sim"><figcaption><b>Fig 3.1</b> · Typing <i>sim</i> finds the Simulation module and its worked problems.</figcaption></figure>
+    <div>
+      <p>You can search for:</p>
+      <ul class="dots">
+        <li>a <b>module</b>: <code>queue</code>, <code>transport</code></li>
+        <li>a <b>method</b>: <code>vogel</code>, <code>hungarian</code>, <code>johnson</code></li>
+        <li>a <b>worked problem</b>: <code>reddy</code>, <code>knapsack</code></li>
+        <li>an <b>action</b>: <code>theme</code></li>
+      </ul>
+      <p>Choosing a worked problem opens its module with the problem already filled in.</p>
+      <div class="box tip"><span class="tag">Tip</span>The <kbd>/</kbd> key does not work while you are typing in a box. Click outside the box first, or use <kbd>Ctrl/⌘</kbd> + <kbd>K</kbd>, which works almost everywhere.</div>
+    </div>
+  </div>
+
+  <p class="part"><span class="pn">4</span>Hover explanations for short forms</p>
+  <p>Textbooks are full of short forms. In OR/Studio, move the mouse over a short form, or tap it on a touch screen, or move to it with the keyboard. A small box explains it. Words with a dotted underline have an explanation. This works for column headings (RHS, ES, EF), symbols (ρ, λ), variable names (s₁ is a slack, a₁ is an artificial variable), and method names (VAM, MODI). Press <kbd>Esc</kbd> to close the box.</p>
+  <figure class="center" style="width:78%"><img src="assets/tooltip.jpg" alt="A hover explanation for the word Ratio"><figcaption><b>Fig 3.2</b> · Hovering over <i>Ratio</i> in a tableau shows what the ratio test is.</figcaption></figure>
+
+  <p class="part"><span class="pn">5</span>Keyboard shortcuts</p>
+  <table class="t zebra">
+    <colgroup><col style="width:30%"><col></colgroup>
+    <thead><tr><th>Key</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>/</kbd> or <kbd>Ctrl/⌘</kbd> <kbd>K</kbd></td><td>Open the search palette</td></tr>
+      <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Previous step / next step</td></tr>
+      <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td>First step / last step</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>Play or pause the step player</td></tr>
+      <tr><td><kbd>1</kbd> to <kbd>9</kbd></td><td>Jump straight to step 1 to 9</td></tr>
+      <tr><td><kbd>P</kbd></td><td>Presentation mode on or off</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>Close a dialog or menu; leave presentation mode</td></tr>
+    </tbody>
+  </table>
+  <div class="box warn"><span class="tag">Watch out</span>The step keys do nothing while your cursor is inside a text box or a grid cell, because those keys are needed for typing. Click on an empty part of the page first.</div>
+</section>
+
+<!-- ============================== 4 THE WORKSPACE ============================== -->
+<section class="chap" id="s-work">
+  <header class="tb"><div class="code">04</div><div class="main"><div class="lab">04 / The workspace</div><h1>The workspace explained</h1><p class="sub">Every module uses the same screen, laid out like a worked sheet. Learn it once and you know all 13.</p></div><div class="meta"><span>Sheet</span><b>04 of 25</b><span>User guide</span></div></header>
+
+  <p>Read the screen from top to bottom. First the <b>title block</b>, then <b>01 Model</b> (what you type), then <b>02 Solution</b> (the answer and the reasons). The numbers on the picture match the list below it.</p>
+
+  <figure>
+    <div class="annot w92" id="ann1">
+      <img src="assets/ws-overview.jpg" alt="The Linear programming workspace with numbered parts">
+      <span class="mk" data-x="128" data-y="198">1</span>
+      <span class="mk" data-x="579" data-y="156">2</span>
+      <span class="mk" data-x="858" data-y="156">3</span>
+      <span class="mk" data-x="1004" data-y="156">4</span>
+      <span class="mk" data-x="1120" data-y="156">5</span>
+      <span class="mk" data-x="172" data-y="262">6</span>
+      <span class="mk" data-x="1058" data-y="256">7</span>
+      <span class="mk" data-x="172" data-y="668">8</span>
+      <span class="mk" data-x="171" data-y="731">9</span>
+      <span class="mk" data-x="171" data-y="794">10</span>
+      <span class="mk" data-x="171" data-y="880">11</span>
+      <span class="mk" data-x="78" data-y="1028">12</span>
+      <span class="mk" data-x="954" data-y="1028">13</span>
+    </div>
+    <figcaption><b>Fig 4.1</b> · The workspace of the Linear programming module (Reddy Mikks problem, step 3 of 4).</figcaption>
+  </figure>
+
+  <ul class="legend">
+    <li><i>1</i><span><b>Title block.</b> The module code (LP), its name and the methods inside it.</span></li>
+    <li><i>2</i><span><b>Method switch.</b> Choose how the problem is solved (here Auto, Simplex, Two-Phase, Big-M, Dual). Not every module has one.</span></li>
+    <li><i>3</i><span><b>Auto / Tutor.</b> <i>Auto</i> solves and shows every step. <i>Tutor</i> hides the next move so you can choose it.</span></li>
+    <li><i>4</i><span><b>Toolbar.</b> Export, Save, Open, and Copy share link (left to right).</span></li>
+    <li><i>5</i><span><b>Presentation mode</b> (also key <kbd>P</kbd>). Bigger text for a classroom screen.</span></li>
+    <li><i>6</i><span><b>01 Model.</b> Where you enter or load the problem. Anything you change updates the solution at once.</span></li>
+    <li><i>7</i><span><b>Hide / Show.</b> Closes or opens the Model card, to give the solution more room.</span></li>
+    <li><i>8</i><span><b>02 Solution.</b> Everything the solver found.</span></li>
+    <li><i>9</i><span><b>Result banner.</b> Status (such as OPTIMAL), the key number, the method, the number of steps and the time.</span></li>
+    <li><i>10</i><span><b>Tabs.</b> Different views of the same answer: tables, graphs, sensitivity, and more.</span></li>
+    <li><i>11</i><span><b>Explanation.</b> A short sentence for the current step. Open <i>Full reasoning</i> for more.</span></li>
+    <li><i>12</i><span><b>Step player.</b> Move through the solution: first, previous, play, next, last, and a slider.</span></li>
+    <li><i>13</i><span><b>Speed.</b> How fast Play runs: 0.5×, 1×, 2× or 4×. Hidden on small screens.</span></li>
+  </ul>
+
+  <h2 id="s-work2"><span class="n">4.1</span>The parts in more detail</h2>
+  <p class="part"><span class="pn">1</span>Result banner and status colours</p>
+  <p>The banner is the first thing to read. It uses colour <i>and</i> words, so you never depend on colour alone.</p>
+  <table class="t">
+    <colgroup><col style="width:24%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row"><span class="chip g">Optimal</span></th><td>The best answer was found. The key number (for example <code>max z = 21</code>) is shown next to it.</td></tr>
+      <tr><th scope="row"><span class="chip a">Warning kinds</span></th><td>Something needs your attention, for example an alternate optimum, a degenerate answer, or an iteration limit.</td></tr>
+      <tr><th scope="row"><span class="chip r">Infeasible / Unbounded</span></th><td>No answer exists, or the answer has no limit. Chapter <a href="#s-results">21</a> explains what to do.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="part"><span class="pn">2</span>Explanation card</p>
+  <p>It explains <b>the step you are looking at</b>. It has a short sentence (for example <i>x₂ enters, s₂ leaves. Pivot element = 4/3.</i>), a <b>Full reasoning</b> paragraph, a formula where one helps, and a <b>Rule applied</b> line that names the rule. A yellow note appears if something special happened.</p>
+
+  <p class="part"><span class="pn">3</span>Tabs</p>
+  <p>Tabs show the same problem in different ways. Their names depend on the module. In Linear programming they are Simplex, Graphical, Sensitivity, Duality, Basic solutions, Primal–dual and Diff mode. Use the mouse, or click a tab and then use <kbd>←</kbd> <kbd>→</kbd> to move between tabs.</p>
+
+  <p class="part"><span class="pn">4</span>Step player</p>
+  <p>The player is fixed at the bottom of the screen so it is always within reach. See chapter <a href="#s-learn">6</a>. In Tutor mode it is replaced by the Tutor card, because you now decide when to move on.</p>
+
+  <p class="part"><span class="pn">5</span>Hide and Show the model</p>
+  <p>Click <b>Hide</b> at the right end of the <b>01 Model</b> line to close the input and see more of the solution. Click <b>Show</b> to open it again. The app remembers your choice.</p>
+
+  <p class="part"><span class="pn">6</span>Presentation mode</p>
+  <p>Press <kbd>P</kbd>, or click the last icon in the toolbar. The Model card is hidden, and the writing and tables become larger, so a class at the back of the room can read them. Press <kbd>P</kbd> or <kbd>Esc</kbd> to leave.</p>
+  <div class="box tip"><span class="tag">Tip</span>Teachers: load a problem from the library, press <kbd>P</kbd>, and use <kbd>→</kbd> to walk the class through the method one step at a time. Fig 6.4 shows the result.</div>
+</section>
+
+<!-- ============================== 5 ENTERING A PROBLEM ============================== -->
+<section class="chap" id="s-enter">
+  <header class="tb"><div class="code">05</div><div class="main"><div class="lab">05 / Entering a problem</div><h1>Entering a problem</h1><p class="sub">Type it, fill a form, edit a grid, paste from Excel, or draw a graph.</p></div><div class="meta"><span>Sheet</span><b>05 of 25</b><span>User guide</span></div></header>
+
+  <p>The <b>01 Model</b> card changes with the module. This table shows what to expect.</p>
+  <table class="t zebra">
+    <colgroup><col style="width:34%"><col></colgroup>
+    <thead><tr><th>Module</th><th>How you enter the problem</th></tr></thead>
+    <tbody>
+      <tr><td>Linear and Integer programming</td><td>Type the model as text, or use the <b>Form</b> tab (see 5.1 and 5.2).</td></tr>
+      <tr><td>Nonlinear programming</td><td>Type a formula such as <code>(x1 - 3)^2 + 2*(x2 + 1)^2</code>, plus a start point or constraints.</td></tr>
+      <tr><td>Transportation, Assignment, Zero-sum games, Markov chains, Job sequencing</td><td>Fill a grid of numbers (see 5.3).</td></tr>
+      <tr><td>Project planning</td><td>A table with one row per activity: name, what comes before it, and times (and costs for crashing).</td></tr>
+      <tr><td>Network models</td><td>Draw the graph with the mouse, or edit the table of edges (see 5.4).</td></tr>
+      <tr><td>Queuing and Inventory</td><td>Boxes for rates and costs. Queuing also has live sliders.</td></tr>
+      <tr><td>Simulation</td><td>Boxes, a distribution table, and a list of random numbers, depending on the kind of simulation.</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="n">5.1</span>The LP text format</h2>
+  <p>Write the model the way you would on paper. The <i>objective</i> (what you want to make as large or as small as possible) comes first. The <i>constraints</i> (the limits) follow.</p>
+<pre>max 3x1 + 5x2
+subject to
+  labour: x1 + 2x2 &lt;= 10
+  3x1 + 2x2 &gt;= 6
+  x1 - x2 = 1
+  free x3          (x3 may be negative)
+  int x1           (x1 must be a whole number)
+  bin x2           (x2 must be 0 or 1)</pre>
+  <table class="t">
+    <colgroup><col style="width:36%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row"><code>max</code> or <code>min</code></th><td>Starts the objective. After it, write the constraints under <code>subject to</code> (you can also write <code>st</code> or <code>s.t.</code>).</td></tr>
+      <tr><th scope="row"><code>&lt;=</code> <code>&gt;=</code> <code>=</code></th><td>The relations. You can also type <code>≤</code> and <code>≥</code>. Variables may be on both sides.</td></tr>
+      <tr><th scope="row"><code>x1, x2 &gt;= 0</code></th><td>Variables are already non-negative. Writing this line is allowed but not needed.</td></tr>
+      <tr><th scope="row"><code>x1</code> means 1·x₁</th><td>Coefficients may be left out. Fractions are fine: <code>1/2x</code>.</td></tr>
+      <tr><th scope="row"><code>2 &lt;= x + y &lt;= 8</code></th><td>A range in one line.</td></tr>
+      <tr><th scope="row"><code>labour:</code></th><td>A name for a row. It then appears in the results instead of (1), (2)…</td></tr>
+      <tr><th scope="row"><code>free</code> / <code>int</code> / <code>bin</code></th><td>Declarations: unrestricted sign, whole number, or 0/1 (zero or one).</td></tr>
+    </tbody>
+  </table>
+  <p>The line below the box tells you if the text was understood: <i>2 variables, 4 constraints — parsed</i>. If something is wrong, the app shows the <b>line and column</b> and puts a caret under the problem.</p>
+  <figure class="center" style="width:80%"><img src="assets/lp-error.jpg" alt="An error message pointing at an empty right-hand side"><figcaption><b>Fig 5.1</b> · A missing right-hand side on line 3. The caret shows where the app stopped reading.</figcaption></figure>
+  <div class="box warn"><span class="tag">Watch out</span>Always look at the line under the box. If the app cannot read your text, it stops and points at the problem. The old solution stays on screen until the text is valid again. If you are stuck, rewrite the line in its simplest form: coefficient, variable, relation, number.</div>
+
+  <h2><span class="n">5.2</span>The Form tab</h2>
+  <p>Prefer a grid? Click <b>Form</b> at the top right of the Model card. It edits the same model. Choose <b>Maximise</b> or <b>Minimise</b>, add or remove variables with <b>−</b> and <b>+</b>, type the numbers, pick the relation (≤, ≥ or =) and the right-hand side. The <b>Type</b> row sets each variable to ≥ 0, free, integer or binary. Switch back to <b>Text</b> at any time. The text is rewritten from the form.</p>
+  <figure class="w90"><img src="assets/lp-form.jpg" alt="The Form tab of the Linear programming module"><figcaption><b>Fig 5.2</b> · The Form tab for the Reddy Mikks problem. Each row is one constraint.</figcaption></figure>
+
+  <h2><span class="n">5.3</span>Grids (matrix editors)</h2>
+  <p>Transportation, Assignment, Games, Markov and Job sequencing use a grid. Click a cell and type.</p>
+  <figure class="center" style="width:88%"><img src="assets/in-transport.jpg" alt="The cost grid of the Transportation module"><figcaption><b>Fig 5.3</b> · A grid editor (Transportation). Rows and columns are added with the + and − buttons under the grid.</figcaption></figure>
+  <ul class="dots">
+    <li><b>Move:</b> <kbd>Enter</kbd> or <kbd>↓</kbd> goes down a cell, <kbd>↑</kbd> goes up. You can also click any cell.</li>
+    <li><b>Add or remove a row or column:</b> use the <b>−</b> and <b>+</b> buttons next to <b>Rows</b> and <b>Columns</b> under the grid. A square grid (Markov) has one <b>Size</b> button. The buttons stop at the largest size the module allows.</li>
+    <li><b>Names:</b> the row and column headings are boxes. Click one and type a new name, such as <i>Plant 1</i> or <i>Job A</i>.</li>
+    <li><b>Numbers:</b> whole numbers, decimals (<code>0.75</code>) and fractions (<code>3/4</code>) are accepted. A cell that is not a number is marked as wrong.</li>
+    <li><b>Prohibited route:</b> in Transportation and Assignment, type <code>M</code> or <code>x</code> in a cell to forbid it.</li>
+  </ul>
+  <p class="part"><span class="pn">+</span>Paste from Excel or a CSV file</p>
+  <ol class="steps">
+    <li>In your spreadsheet, select the block of numbers and copy it (<kbd>Ctrl/⌘</kbd> + <kbd>C</kbd>).</li>
+    <li>In OR/Studio, click the <b>top-left cell</b> where the block should start.</li>
+    <li>Paste (<kbd>Ctrl/⌘</kbd> + <kbd>V</kbd>). The grid grows if the block is larger, up to the module's limit.</li>
+  </ol>
+  <p>You can also click <b>Import CSV</b> under the grid and choose a <code>.csv</code>, <code>.tsv</code> or <code>.txt</code> file.</p>
+  <div class="box tip"><span class="tag">Tip</span>Paste only the numbers, not the headings. Then rename the rows and columns in the app.</div>
+
+  <h2><span class="n">5.4</span>The graph editor (Network models)</h2>
+  <figure class="center" style="width:92%"><img src="assets/in-network.jpg" alt="The graph editor"><figcaption><b>Fig 5.4</b> · The graph editor with the shortest-route example loaded.</figcaption></figure>
+  <table class="t">
+    <colgroup><col style="width:22%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row">Move</th><td>Drag nodes to rearrange the picture. This never changes the answer.</td></tr>
+      <tr><th scope="row">Add node</th><td>Choose the tool, then click an empty place on the canvas.</td></tr>
+      <tr><th scope="row">Add edge</th><td>Click one node, then another node, to join them.</td></tr>
+      <tr><th scope="row">Delete</th><td>Click a node or an edge to remove it.</td></tr>
+      <tr><th scope="row">Edge table</th><td>Below the canvas, each edge is a row: <b>From</b>, <b>To</b>, <b>Weight</b> (and <b>Cap.</b> for max flow) and a box for <b>directed</b> (an arrow, one-way). Edit numbers here, or press <b>Edge row</b> to add one.</td></tr>
+      <tr><th scope="row">Source, Sink</th><td>Choose the start and end nodes in the two lists above the canvas.</td></tr>
+      <tr><th scope="row">Other</th><td><b>Rename nodes</b> (folded section), <b>Import matrix…</b> (from a CSV file) and <b>Clear graph</b>.</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="n">5.5</span>Examples and Clear</h2>
+  <p>Almost every Model card has an <b>Example</b> list at the top. It holds the library problems for that module. Pick one to fill in the model. Some modules also have a clear button (<b>Clear</b> in Job sequencing, <b>Clear graph</b> in Network models) that empties the problem so you can start from nothing.</p>
+  <div class="box warn"><span class="tag">Watch out</span>Choosing an example <b>replaces</b> what is in the Model card. Save your own model first if you want to keep it (see chapter <a href="#s-save">7</a>). Your last model is also autosaved.</div>
+</section>
+
+<!-- ============================== 6 LEARNING TOOLS ============================== -->
+<section class="chap" id="s-learn">
+  <header class="tb"><div class="code">06</div><div class="main"><div class="lab">06 / Learning tools</div><h1>Learning tools</h1><p class="sub">The step player, Tutor mode, Diff mode, the problem library and presentation mode.</p></div><div class="meta"><span>Sheet</span><b>06 of 25</b><span>User guide</span></div></header>
+
+  <h2><span class="n">6.1</span>The step player</h2>
+  <p>Every solution is a list of steps, for example one step for each simplex pivot. The player at the bottom of the screen moves you through them.</p>
+  <table class="t">
+    <colgroup><col style="width:30%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row">⏮ ◀ ▶ ⏭</th><td>First step, previous step, next step, last step.</td></tr>
+      <tr><th scope="row">Play / Pause</th><td>Moves forward by itself. At the end, Play starts again from step 1.</td></tr>
+      <tr><th scope="row"><b>03</b> / 04</th><td>Where you are, and how many steps there are.</td></tr>
+      <tr><th scope="row">Slider</th><td>Drag to jump to any step.</td></tr>
+      <tr><th scope="row">0.5× 1× 2× 4×</th><td>The speed of Play.</td></tr>
+    </tbody>
+  </table>
+  <p>Keys work too: <kbd>←</kbd> <kbd>→</kbd> <kbd>Home</kbd> <kbd>End</kbd> <kbd>Space</kbd> and <kbd>1</kbd> to <kbd>9</kbd>. The page address also remembers the step, so a link to a step opens at that step.</p>
+
+  <h2><span class="n">6.2</span>Tutor mode</h2>
+  <p>Switch <b>Auto</b> to <b>Tutor</b> in the title block. The solver now stops before each decision and <b>asks you</b>. For example in the simplex method it asks <i>Which variable should enter the basis?</i> and then <i>Which variable leaves?</i>. Choose an answer.</p>
+  <figure><img src="assets/tutor.jpg" alt="Tutor mode showing a wrong answer and its explanation"><figcaption><b>Fig 6.1</b> · A wrong answer. The app explains why, and names the idea that led you astray.</figcaption></figure>
+  <ul class="dots">
+    <li>A <b>wrong answer</b> turns red and explains the specific mistake, with a line called <i>Misconception</i>.</li>
+    <li>A <b>right answer</b> turns green. Press <b>Continue</b> for the next question.</li>
+    <li>After two wrong answers a <b>Show the answer</b> button appears.</li>
+    <li>The badge on the card (for example <i>3/5 first try</i>) counts questions you got right on the first try.</li>
+  </ul>
+  <p>Tutor mode is in <b>Linear programming, Integer programming, Transportation, Assignment, Network models, Project planning, Zero-sum games and Job sequencing</b>. The other modules use formulas and have no decisions to practise. Changing the model or the method restarts the lesson.</p>
+
+  <h2><span class="n">6.3</span>Diff mode</h2>
+  <p>Solve the problem <b>by hand</b> first. Then open the <b>Diff mode</b> tab and type your working for one step. OR/Studio compares it with the correct working, finds the <b>first place where they differ</b>, lists the cells, and guesses the cause: a wrong entering or leaving variable, a pivot row that was not divided, a wrong multiplier, a sign error, or a single slip in arithmetic.</p>
+  <figure class="mod"><img src="assets/lp-diff.jpg" alt="The Diff mode tab"><figcaption><b>Fig 6.2</b> · Diff mode in Linear programming: choose the step, fill your tableau, then compare.</figcaption></figure>
+  <ol class="steps">
+    <li>Open <b>Diff mode</b> and choose <i>My tableau is for iteration</i> (the step you are checking).</li>
+    <li>Type your numbers in the grid. <b>Copy solver tableau to edit</b> fills it with the correct one so you can change a cell on purpose to see the message.</li>
+    <li>Press <b>Compare with iteration</b>, or <b>Find the closest iteration</b> if you are not sure which step you did.</li>
+  </ol>
+  <p>Diff mode is in Linear programming, Integer programming, Transportation, Assignment, Network models, Project planning and Zero-sum games.</p>
+
+  <h2><span class="n">6.4</span>The problem library</h2>
+  <p>The library holds <b>66 worked problems</b>, one or more for every module: textbook examples, special cases (unbounded, infeasible, degenerate) and the course experiments. Open it from the left rail, or search for a problem with <kbd>/</kbd>.</p>
+  <figure class="w80"><img src="assets/library.jpg" alt="The Problem library page"><figcaption><b>Fig 6.3</b> · The library. Filter by module, search by word, and press Open.</figcaption></figure>
+  <ul class="dots">
+    <li>Each card shows the source, a short description and the <b>expected answer</b> in green.</li>
+    <li><b>Open</b> loads the problem in its module with the right method chosen.</li>
+    <li>Every answer is checked by the automatic tests of the app, so you can trust it.</li>
+    <li>This guide gives the library id (such as <code>lp-reddy</code>) with each example. A link ending in <code>?lib=lp-reddy</code> opens it directly.</li>
+  </ul>
+
+  <h2><span class="n">6.5</span>Presentation mode</h2>
+  <p>See chapter <a href="#s-work2">4.1</a>. Press <kbd>P</kbd> to enlarge the screen for a class, and <kbd>P</kbd> or <kbd>Esc</kbd> to leave.</p>
+  <figure class="center" style="width:62%"><img src="assets/presentation.jpg" alt="Presentation mode"><figcaption><b>Fig 6.4</b> · Presentation mode: the model is hidden and the text is bigger. The screen is narrow here, so the buttons wrap.</figcaption></figure>
+</section>
+
+<!-- ============================== 7 SAVE SHARE EXPORT ============================== -->
+<section class="chap" id="s-save">
+  <header class="tb"><div class="code">07</div><div class="main"><div class="lab">07 / Save, share and export</div><h1>Save, share and export</h1><p class="sub">Keep your work, send it to a friend, or take the solution into a document.</p></div><div class="meta"><span>Sheet</span><b>07 of 25</b><span>User guide</span></div></header>
+
+  <h2><span class="n">7.1</span>Autosave</h2>
+  <p>You do not need to press anything. About half a second after you stop changing a model, the app saves it in your browser. When you return to the module, your last model is there. Each module has its own autosave. The footer of the workspace says <i>Autosaved in this browser</i>.</p>
+  <div class="box warn"><span class="tag">Watch out</span>Autosave keeps only the <b>latest</b> model of each module. To keep several, use <b>Save</b> and give each model a name. If the browser's storage is full or blocked, the app tells you, and you can download the model as a file instead.</div>
+
+  <h2><span class="n">7.2</span>The Save and Open dialogs</h2>
+  <div class="pair">
+    <figure><img src="assets/save-dialog.jpg" alt="The Save this model dialog"><figcaption><b>Fig 7.1</b> · Save this model.</figcaption></figure>
+    <div>
+      <p><b>Save</b> is the disk icon in the toolbar. <b>Open</b> is the folder icon next to it.</p>
+      <ol class="steps">
+        <li>Click <b>Save</b> and type a name, for example <i>Week 4 — product mix</i>.</li>
+        <li>Press <b>Save in this browser</b>. If the name already exists, the button says <b>Replace</b>.</li>
+        <li>Or press <b>Download as file</b> to get a <code>.json</code> file you can send or keep.</li>
+      </ol>
+    </div>
+  </div>
+  <p>In <b>Open</b> you see all models saved for this module. Tick <b>all modules</b> to see every module. For each model you can open it (click its name), <b>rename</b> it (pencil), <b>download</b> it, or <b>delete</b> it (the app asks <i>Delete?</i> first). <b>Open a model file…</b> loads a <code>.json</code> file from your computer. A model made for another module opens in that module.</p>
+
+  <h2><span class="n">7.3</span>Share link</h2>
+  <p>Click the <b>link icon</b> in the toolbar. The app copies a web address to the clipboard and tells you how long it is. Paste it into a message. Whoever opens it sees <b>your model, your method and your step</b>. No file and no account are needed. The model is stored inside the link, so very large models may give a link that is too long for some chat apps.</p>
+
+  <h2><span class="n">7.4</span>Export</h2>
+  <div class="pair">
+    <figure><img src="assets/export-menu.jpg" alt="The Export menu"><figcaption><b>Fig 7.2</b> · The Export menu (download icon).</figcaption></figure>
+    <div>
+      <p>The export menu turns the current solution into a file. Reports include the model, every step with its explanation, the result and the views you were looking at.</p>
+      <p class="sm mut">If nothing is solved yet, the app says <i>Nothing to export yet</i>.</p>
+    </div>
+  </div>
+  <table class="t zebra">
+    <colgroup><col style="width:27%"><col style="width:41%"><col></colgroup>
+    <thead><tr><th>Choice</th><th>What you get</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">PDF — full solution</th><td>A clean report opens in a print window.</td><td>Handing in a solution or printing notes. Choose <b>Save as PDF</b> as the printer. Allow pop-ups if the browser blocks the window.</td></tr>
+      <tr><th scope="row">LaTeX (.tex)</th><td>A document that uses the <code>amsmath</code> and <code>booktabs</code> packages.</td><td>Theses and papers written in LaTeX.</td></tr>
+      <tr><th scope="row">PNG — current view</th><td>A picture of the view you are looking at.</td><td>Slides and notes: a graph, a tableau, a Gantt chart.</td></tr>
+      <tr><th scope="row">CSV — result tables</th><td>The result tables as comma-separated text.</td><td>Opening the numbers in Excel or other software.</td></tr>
+      <tr><th scope="row">JSON — model</th><td>The model only, as a small file.</td><td>Backup, or sending the problem to someone. Same as Download as file.</td></tr>
+      <tr><th scope="row">HTML report</th><td>The report as a web page file.</td><td>Sharing a readable solution with no software needed.</td></tr>
+    </tbody>
+  </table>
+  <div class="box tip"><span class="tag">Tip</span>To keep a <b>PDF</b> with the step shown on screen as a picture, choose the step you want first. The report includes a snapshot of the current view.</div>
+</section>
+
+<!-- ============================== 8 LINEAR PROGRAMMING ============================== -->
+<section class="chap" id="s-lp">
+  <header class="tb"><div class="code">LP</div><div class="main"><div class="lab">08 / Linear programming</div><h1>Linear programming</h1><p class="sub">Simplex · Two-Phase · Big-M · Dual · Graphical · Sensitivity · Duality · Basic solutions · Primal–dual</p></div><div class="meta"><span>Sheet</span><b>08 of 25</b><span>Optimise</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>You choose how much of several things to do (the <b>variables</b>) to make one number as <b>big</b> (profit) or as <b>small</b> (cost) as possible (the <b>objective</b>). Your choices are limited by <b>constraints</b>, such as the hours or material you have. In linear programming, everything is a straight-line relation.</p>
+
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots">
+    <li>Product mix: how many of each product to make with limited machines, time or material.</li>
+    <li>Blending and diet: the cheapest mix that meets minimum needs.</li>
+    <li>Any "best use of limited resources" problem where doubling the input doubles the effect.</li>
+  </ul>
+  <p class="sm mut">If answers must be whole numbers, use <a href="#s-integer">Integer programming</a>. If the relation is curved, use <a href="#s-nlp">Nonlinear programming</a>.</p>
+
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Linear programming</b> from the rail (code <b>LP</b>).</li>
+    <li>In <b>01 Model</b>, type the model (chapter <a href="#s-enter">5.1</a>), use the <b>Form</b> tab, or choose an <b>Example</b>.</li>
+    <li>Look for <i>parsed</i> in green under the box. If you see red text, fix the line it points to.</li>
+    <li>Choose a <b>Method</b> in the title block (see the table below). <b>Auto</b> is the right choice if you are not sure.</li>
+    <li>Use the step player to walk through the simplex tableaux.</li>
+  </ol>
+  <table class="t zebra">
+    <colgroup><col style="width:17%"><col></colgroup>
+    <thead><tr><th>Method</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Auto</th><td>Uses the plain Simplex if every row is ≤ with a right-hand side of 0 or more. Otherwise it uses Two-Phase.</td></tr>
+      <tr><th scope="row">Simplex</th><td>The standard tableau method, starting from the slack variables.</td></tr>
+      <tr><th scope="row">Two-Phase</th><td>Phase I finds a feasible starting point with artificial variables. Phase II then optimises the real objective.</td></tr>
+      <tr><th scope="row">Big-M</th><td>Artificial variables with a very large penalty <i>M</i>. The app keeps M as a symbol, never as a number.</td></tr>
+      <tr><th scope="row">Dual</th><td>Dual simplex. It needs a start that is optimal but not yet feasible (a minimisation with costs of 0 or more). If it cannot start, the app switches method and tells you why.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <p>The banner shows the status and the best value. The tabs are:</p>
+  <table class="t">
+    <colgroup><col style="width:21%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row">Simplex</th><td>Each tableau, the pivot, the ratio test, and below it the <b>Solution</b> card: variable values, slack of each constraint and its <b>shadow price</b>.</td></tr>
+      <tr><th scope="row">Graphical</th><td>Only for <b>two variables</b>. Draw the constraints and the feasible region and see the best corner. You can drag a constraint's right-hand side.</td></tr>
+      <tr><th scope="row">Sensitivity</th><td>How far each right-hand side and cost can change before the answer changes. Range bars, a what-if slider and a sentence in plain words.</td></tr>
+      <tr><th scope="row">Duality</th><td>The <b>dual</b> problem written out, a table that matches primal and dual parts, and checks (such as strong duality).</td></tr>
+      <tr><th scope="row">Basic solutions</th><td>Every possible basis, with its point and objective value. It marks the feasible ones (the corner points).</td></tr>
+      <tr><th scope="row">Primal–dual</th><td>The primal–dual algorithm, with its own step player.</td></tr>
+      <tr><th scope="row">Diff mode</th><td>Compare your hand-made tableau with the correct one (chapter <a href="#s-learn">6.3</a>).</td></tr>
+    </tbody>
+  </table>
+  <figure class="mod"><img src="assets/m-lp.jpg" alt="Final simplex tableau and solution"><figcaption><b>Fig 8.1</b> · The last tableau of the Reddy Mikks problem. The bottom shows variable values and shadow prices.</figcaption></figure>
+
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots">
+    <li><b>The z row</b> of the final tableau has no negative number (for a maximisation). That is the sign that the answer is optimal.</li>
+    <li><b>Basis</b> lists the variables that have a value. Every other variable is 0. <b>RHS</b> gives their values.</li>
+    <li><b>Slack</b> is the unused part of a resource. A constraint with slack 0 is <span class="chip a">tight</span>: it is fully used.</li>
+    <li><b>Shadow price</b> is how much the best value improves if you get <b>one more unit</b> of that resource. A constraint that is not tight has a shadow price of 0.</li>
+    <li>On the <b>Sensitivity</b> tab, the green bar is the range where the shadow price stays valid.</li>
+    <li>On the <b>Duality</b> tab, <i>All checks hold</i> means primal and dual agree.</li>
+  </ul>
+  <figure class="mod"><img src="assets/lp-sens.jpg" alt="Sensitivity tab"><figcaption><b>Fig 8.2</b> · Sensitivity. The M1 constraint (24) can move between 20 and 36 and the shadow price ¾ stays valid.</figcaption></figure>
+
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <p>Library problem <code>lp-reddy</code> (Reddy Mikks paint company, Taha 2.1-1). Exterior paint (x₁) earns 5 and interior paint (x₂) earns 4 per unit.</p>
+<pre>max 5x1 + 4x2
+subject to
+  M1: 6x1 + 4x2 &lt;= 24
+  M2: x1 + 2x2 &lt;= 6
+  Market: -x1 + x2 &lt;= 1
+  Demand: x2 &lt;= 2</pre>
+  <table class="t">
+    <colgroup><col style="width:30%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row">Result</th><td><span class="chip g">Optimal</span> &nbsp; <code>x₁ = 3</code>, <code>x₂ = 3/2</code>, <code>max z = 21</code>, after 2 pivots (4 steps).</td></tr>
+      <tr><th scope="row">Shadow prices</th><td>M1 = <b>3/4</b>, M2 = <b>1/2</b>, Market = 0, Demand = 0. M1 and M2 are tight (slack 0). Market has slack 5/2 and Demand has slack 1/2.</td></tr>
+      <tr><th scope="row">Basic solutions tab</th><td>The standard form has 6 variables and 4 equations, so there are C(6, 4) = 15 candidate bases. <b>6</b> are feasible corner points, <b>8</b> are infeasible and <b>1</b> is not a basis.</td></tr>
+      <tr><th scope="row">Duality tab</th><td>The dual is <code>min 24y₁ + 6y₂ + y₃ + 2y₄</code>. Its answer is also 21.</td></tr>
+    </tbody>
+  </table>
+  <p>A second example, <code>lp-twophase</code>, minimises <code>4x1 + x2</code> with an equality and a ≥ row. Auto chooses Two-Phase. The answer is <code>x = (2/5, 9/5)</code> and <code>z = 17/5</code>. <a href="#s-wa">Walk-through A</a> follows Reddy Mikks from the first key press.</p>
+
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>Check the <b>direction</b> of each sign (≤ or ≥). Reversing one changes the whole problem.</li><li>A <b>negative right-hand side</b> or a ≥ row needs artificial variables. That is normal. Auto switches to Two-Phase for you.</li><li>The <b>Graphical</b> tab disappears when the model has more than two variables. This is not an error.</li><li>An answer of <i>Infeasible</i> or <i>Unbounded</i> usually means a typing mistake. See chapter <a href="#s-results">21</a>.</li></ul></div>
+  <div class="box tip"><span class="tag">Tip</span>Name your rows (<code>labour: …</code>). The shadow price table then shows <i>labour</i> instead of (1), which is much easier to read.</div>
+  <figure class="crop"><img src="assets/lp-duality.jpg" alt="Duality tab"><figcaption><b>Fig 8.3</b> · Duality tab: the primal and its dual side by side.</figcaption></figure>
+  <figure class="crop"><img src="assets/lp-basic.jpg" alt="Basic solutions tab"><figcaption><b>Fig 8.4</b> · Basic solutions: 15 candidate bases, of which 6 are feasible corner points (BFS).</figcaption></figure>
+</section>
+
+<!-- ============================== 9 INTEGER ============================== -->
+<section class="chap" id="s-integer">
+  <header class="tb"><div class="code">IP</div><div class="main"><div class="lab">09 / Integer programming</div><h1>Integer programming</h1><p class="sub">Branch and bound with a tree · Gomory cuts</p></div><div class="meta"><span>Sheet</span><b>09 of 25</b><span>Optimise</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>It is linear programming with one extra rule: some or all variables must be <b>whole numbers</b> (<span class="hl">integers</span>), or <b>0 or 1</b> (<span class="hl">binary</span>). You cannot build 2.5 machines.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>Counting things: machines, vehicles, workers.</li><li>Yes/no choices: build or not, take an item or not (the knapsack problem).</li><li><b>Mixed</b> problems where only some variables must be whole.</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Integer programming</b>. Type the model like an LP and add a declaration line: <code>int x1, x2</code> or <code>bin x1, x2</code>. The Form tab has the same choices in its <b>Type</b> row.</li>
+    <li>Choose the <b>Method</b>: <b>Branch &amp; bound</b> or <b>Gomory cuts</b>.</li>
+    <li>For branch and bound, open <b>Search settings</b>: <i>Node selection</i> (Best bound first, Depth first or Breadth first), <i>Branching variable</i> (First fractional or Most fractional) and a <i>Node limit</i>. The defaults are fine to begin with.</li>
+    <li>Step through the solution with the player.</li>
+  </ol>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <ul class="dots">
+    <li><b>Branch and bound:</b> a <b>Tree</b> tab (drag to pan, scroll to zoom, click a node for details), an <i>incumbent and bound</i> chart, a <b>Plane</b> tab for two variables, and Diff mode.</li>
+    <li><b>Gomory cuts:</b> a <b>Cuts</b> tab with the tableau and the list of cuts, each written in the original variables, and a Plane tab that draws the cuts.</li>
+  </ul>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots">
+    <li><b>Branch and bound</b> solves the LP, finds a variable that is not whole (say 1.5) and splits the problem into two: one with <code>x ≤ 1</code>, one with <code>x ≥ 2</code>. It repeats. Each box in the tree is one LP.</li>
+    <li>Node symbols: <b>◆</b> split further, <b>✓</b> all whole, <b>★</b> best whole answer so far (the <i>incumbent</i>), <b>✂</b> cut off because it cannot beat the incumbent, <b>⊘</b> no solution.</li>
+    <li>The <b>bound</b> is the best value any open node could still reach. When the incumbent equals the bound, the answer is proven best.</li>
+    <li>The banner shows the best value, the LP bound, the number of nodes and how many were pruned.</li>
+  </ul>
+  <figure class="mod"><img src="assets/m-integer.jpg" alt="Branch and bound tree"><figcaption><b>Fig 9.1</b> · The finished tree for <code>int-taha</code>. The star marks the best whole answer, z = 20.</figcaption></figure>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <p>Library problem <code>int-taha</code> (Taha 9.2-1): <code>max 5x1 + 4x2</code> subject to <code>6x1 + 4x2 &lt;= 24</code>, <code>x1 + 2x2 &lt;= 6</code>, <code>int x1, x2</code>.</p>
+  <table class="t">
+    <colgroup><col style="width:30%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row">Step 1 (root)</th><td>Ignore the whole-number rule. The LP gives <code>x₁ = 3</code>, <code>x₂ = 3/2</code>, <code>z = 21</code>. This is an upper bound.</td></tr>
+      <tr><th scope="row">Branching</th><td>x₂ = 1.5 is not whole, so split into <code>x₂ ≤ 1</code> and <code>x₂ ≥ 2</code>. Then split <code>x₁ ≤ 3</code> and <code>x₁ ≥ 4</code>.</td></tr>
+      <tr><th scope="row">Result</th><td><span class="chip g">Optimal</span> &nbsp; <code>x = (4, 0)</code>, <code>z = 20</code>, found with <b>5 nodes</b>. The gap to the LP bound (21) is 1.</td></tr>
+      <tr><th scope="row">Gomory method</th><td>The same problem needs <b>4 cuts</b> and reaches the same <code>z = 20</code>.</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li><b>Do not round</b> the LP answer. Rounding (3, 1.5) up to (3, 2) breaks a constraint. That is why branch and bound exists.</li><li>If the search stops with a warning, you have reached the <b>node limit</b>. Raise it, or simplify the model.</li><li>A problem can be feasible as an LP but have <b>no whole-number answer</b>. Try <code>int-infeasible</code>: <code>2x1 = 3</code> with <code>int x1</code>.</li></ul></div>
+  <div class="box tip"><span class="tag">Tip</span>Use <code>int-knap</code> (a 0-1 knapsack, best value 28) to see a binary problem. Try the three node selections and compare the trees.</div>
+</section>
+
+<!-- ============================== 10 NLP ============================== -->
+<section class="chap" id="s-nlp">
+  <header class="tb"><div class="code">NLP</div><div class="main"><div class="lab">10 / Nonlinear programming</div><h1>Nonlinear programming</h1><p class="sub">Gradient and Newton steps · KKT check · exact quadratic programming</p></div><div class="meta"><span>Sheet</span><b>10 of 25</b><span>Optimise</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>It finds the lowest (or highest) value of a <b>curved</b> function, such as <code>(x1 − 3)² + 2(x2 + 1)²</code>, with or without constraints. It gives three tools, chosen with the <b>Method</b> switch.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li><b>Unconstrained:</b> find the minimum of a function with an iterative method.</li><li><b>KKT:</b> check whether a point satisfies the Karush–Kuhn–Tucker conditions (the standard test for a constrained optimum).</li><li><b>Quadratic:</b> solve <i>minimise ½xᵀQx + cᵀx subject to Ax ≤ b, x ≥ 0</i> exactly.</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Nonlinear programming</b> and choose <b>Unconstrained</b>, <b>KKT</b> or <b>Quadratic</b>.</li>
+    <li><b>Unconstrained:</b> type <b>f(x₁, x₂, …)</b> using <code>x1, x2</code>, the signs <code>+ − * / ^</code> and the functions <code>exp, ln, sin, cos, sqrt</code>. Type a <b>Starting point</b> such as <code>0, 0</code>. Pick <b>Newton</b> or <b>Gradient descent</b>.</li>
+    <li><b>KKT:</b> type the objective, add constraints with <b>+ constraint</b> (each is <code>g(x) ≤ 0</code> or <code>h(x) = 0</code>), and type the <b>Candidate point</b>.</li>
+    <li><b>Quadratic:</b> fill the symmetric matrix <b>Q</b>, the vector <b>c</b>, and the constraint grid <b>A | b</b>.</li>
+  </ol>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <ul class="dots"><li><b>Unconstrained:</b> a <b>contour plot</b> with the path of the iterates, symbolic derivatives (the gradient and the Hessian), and a step player.</li><li><b>KKT:</b> a list of the four conditions, each marked satisfied or not, with the multipliers λ.</li><li><b>Quadratic:</b> the exact optimum, and whether the problem is convex.</li></ul>
+  <figure class="mod"><img src="assets/m-nlp.jpg" alt="Contour plot with iterates"><figcaption><b>Fig 10.1</b> · The contour plot of <code>nlp-bowl</code>. Newton's method reaches the minimum in one step.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li><b>Stationary point — minimum:</b> the gradient is almost zero and the Hessian eigenvalues are all positive. It is a local minimum, and the global one if the function is convex.</li><li><b>Contours</b> are lines of equal f. The path should move across them towards the centre.</li><li><b>KKT satisfied</b> means the point is a <i>candidate</i> optimum. It is sufficient only if the problem is convex.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <table class="t">
+    <colgroup><col style="width:30%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row"><code>nlp-bowl</code></th><td><code>f = (x1 − 3)^2 + 2*(x2 + 1)^2 + x1*x2</code>, start <code>(0, 0)</code>, Newton. Result: stationary point <b>(4, −2)</b>, <b>minimum</b>, <code>f = −5</code>, after <b>1 iteration</b>. Gradient descent needs more steps and zig-zags.</td></tr>
+      <tr><th scope="row"><code>nlp-kkt</code></th><td>Is <code>(1, 1)</code> a KKT point of <code>min (x₁−2)² + (x₂−2)²</code> subject to <code>x₁ + x₂ − 2 ≤ 0</code>? <span class="chip g">KKT satisfied</span>, with multiplier <b>λ = 2</b> on the active constraint.</td></tr>
+      <tr><th scope="row"><code>nlp-qp</code></th><td>Quadratic program with <code>Q = [[2,0],[0,2]]</code>, <code>c = (−4, −4)</code>, <code>x₁ + x₂ ≤ 2</code>. Exact optimum <b>x = (1, 1)</b>, objective <b>−6</b>. The problem is convex, so this is the global minimum.</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>Write the product with a star: <code>2*x1</code>. Use <code>^</code> for powers: <code>x1^2</code>.</li><li>Methods that follow the slope find a <b>local</b> minimum. A curve with several valleys may need several start points.</li><li>Write constraints so that the right side is 0, in the form <code>g(x) ≤ 0</code>. For <code>x1 + x2 ≤ 2</code>, type <code>x1 + x2 - 2</code>.</li></ul></div>
+</section>
+
+<!-- ============================== 11 TRANSPORTATION ============================== -->
+<section class="chap" id="s-transport">
+  <header class="tb"><div class="code">TP</div><div class="main"><div class="lab">11 / Transportation</div><h1>Transportation</h1><p class="sub">Starting solution · MODI optimality test · closed loops · method comparison</p></div><div class="meta"><span>Sheet</span><b>11 of 25</b><span>Flows and plans</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>Goods are in stock at several <b>sources</b> (factories, warehouses). Several <b>destinations</b> (shops, cities) need them. Shipping one unit on each route has a cost. The module finds how many units to send on each route so that the <b>total cost is lowest</b>.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>Moving goods, fuel, water or people between places.</li><li>Matching supply to demand where only the unit costs differ.</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Transportation</b>. In the grid, type the <b>unit cost</b> of each route (rows are sources, columns are destinations).</li>
+    <li>Type the <b>Supply</b> of each source (right column) and the <b>Demand</b> of each destination (bottom row).</li>
+    <li>Add or remove rows and columns with the <b>+</b> and <b>−</b> buttons. Rename sources and destinations.</li>
+    <li>Choose <b>Minimise cost</b> or <b>Maximise profit</b>. Type <code>M</code> or <code>x</code> in a cell for a route that cannot be used.</li>
+    <li>Choose the starting method in the title block: <b>Vogel</b> (VAM), <b>Least-cost</b> or <b>NW corner</b>.</li>
+  </ol>
+  <p>If supply and demand are not equal, the app adds a labelled <b>dummy</b> row or column by itself and tells you.</p>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <ul class="dots"><li><b>Allocation:</b> the grid, step by step. First the starting solution, then each <b>MODI</b> step.</li><li><b>Method comparison:</b> NW corner, least cost and Vogel side by side (starting cost and number of improvement steps).</li><li><b>Diff mode</b> to check your own allocation.</li></ul>
+  <figure class="mod"><img src="assets/m-transport.jpg" alt="Final transportation grid with u and v values"><figcaption><b>Fig 11.1</b> · The last step of <code>tr-taha</code>. Each cell shows the unit cost (small) and the units sent (large), with u, v and Δ.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li>A cell with a big number is a <b>route in use</b>. The small number is its cost.</li><li><b>u</b> and <b>v</b> are <i>dual values</i> for each row and column. MODI finds them so that every used cell has <code>cost = u + v</code>.</li><li><b>Δ</b> (improvement index) of an empty cell is <code>cost − u − v</code>. If <b>every Δ ≥ 0</b>, the solution is optimal. A negative Δ shows a cheaper route, and the app draws the <b>closed loop</b> used to move units.</li><li>A diagnostic <i>degenerate</i> means a used cell has 0 units. It is normal; the app places a zero (ε) so the method can go on.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <p>Library problem <code>tr-taha</code> (SunRay Transport, Taha 5.1-1). Supply <code>15, 25, 10</code>; demand <code>5, 15, 15, 15</code>.</p>
+  <table class="t">
+    <colgroup><col style="width:24%"><col></colgroup>
+    <thead><tr><th></th><th>D1</th><th>D2</th><th>D3</th><th>D4</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">S1</th><td>10</td><td>2</td><td>20</td><td>11</td></tr>
+      <tr><th scope="row">S2</th><td>12</td><td>7</td><td>9</td><td>20</td></tr>
+      <tr><th scope="row">S3</th><td>4</td><td>14</td><td>16</td><td>18</td></tr>
+    </tbody>
+  </table>
+  <p>With <b>Vogel</b>, the starting cost is <b>475</b>. One MODI step brings it to <span class="chip g">Optimal</span> <b>435</b>. The shipments are S1→D2: 5, S1→D4: 10, S2→D2: 10, S2→D3: 15, S3→D1: 5 and S3→D4: 5. The dual values are u = (0, 5, 7) and v = (−3, 2, 4, 11). The <b>Method comparison</b> tab shows how the other starts compare.</p>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>For <b>profits</b>, choose <i>Maximise profit</i>. Do not type negative costs.</li><li>The numbers on the grid must be <b>per unit</b>, not totals for a route.</li><li>Different starting methods can give different starting costs, but the <b>final optimal cost is the same</b>.</li></ul></div>
+</section>
+
+<!-- ============================== 12 ASSIGNMENT ============================== -->
+<section class="chap" id="s-assign">
+  <header class="tb"><div class="code">AP</div><div class="main"><div class="lab">12 / Assignment</div><h1>Assignment</h1><p class="sub">Hungarian method · exact minimum line cover · rectangular · maximisation</p></div><div class="meta"><span>Sheet</span><b>12 of 25</b><span>Flows and plans</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>It matches <b>each worker to exactly one job</b> so that the total cost (or time) is as low as possible. The cost of every worker–job pair is in a table.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>Workers to jobs, machines to tasks, teachers to classes, drivers to routes.</li><li>When profits matter more than costs, use <b>Maximise profit</b>.</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Assignment</b>. Type the cost of each worker (row) doing each job (column).</li>
+    <li>Add or remove rows and columns with <b>+</b> and <b>−</b>. Rename them.</li>
+    <li>Choose <b>Minimise cost</b> or <b>Maximise profit</b>. Type <code>M</code> or <code>x</code> in a cell if a worker cannot do a job.</li>
+    <li>Step through the <b>Hungarian</b> tab. A table that is not square is padded with a dummy row or column of zeros.</li>
+  </ol>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <p>The <b>Hungarian</b> tab shows the matrix at each stage, the lines that cover the zeros, and finally the <b>optimal assignment</b> with the cost of each pair. Tutor mode and Diff mode are available.</p>
+  <figure class="mod"><img src="assets/m-assign.jpg" alt="Optimal assignment"><figcaption><b>Fig 12.1</b> · The final stage for <code>as-4x4</code>: the reduced matrix with its independent zeros, and the list of pairs.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li>The method <b>subtracts the smallest number</b> of each row and then of each column. This makes zeros without changing the best answer.</li><li>It then covers all zeros with as <b>few lines</b> as possible. If the number of lines equals the size of the table (n), n independent zeros give the assignment. If fewer, the table is <b>adjusted</b> and the loop repeats.</li><li>The <b>total cost</b> is always taken from the <b>original</b> table, not the reduced one.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <p>Library problem <code>as-4x4</code>: four workers and four jobs. Costs: <code>1 4 6 3 / 9 7 10 9 / 4 5 11 7 / 8 7 8 5</code>.</p>
+  <table class="t">
+    <colgroup><col style="width:30%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row">Result</th><td><span class="chip g">Optimal</span> &nbsp; <b>total cost = 21</b>, in 7 steps. The first line cover uses fewer than 4 lines, so the matrix is adjusted once.</td></tr>
+      <tr><th scope="row">Assignment</th><td>1 → J1 (cost 1), 2 → J3 (10), 3 → J2 (5), 4 → J4 (5).</td></tr>
+    </tbody>
+  </table>
+  <p>Other library problems: <code>as-rect</code> (2 workers, 3 jobs, so a dummy worker is added; total 9), <code>as-max</code> (maximise profit) and <code>as-3x3</code> (total 9).</p>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>Use <i>Maximise profit</i> for a table of profits or scores. Do not just reverse the sign yourself.</li><li>A dummy worker or job in a rectangular table has no real cost. In the answer, a worker paired with a dummy job simply gets <b>no job</b>.</li></ul></div>
+  <div class="box tip"><span class="tag">Tip</span>Use Tutor mode to practise the two decisions of the method: how to cover all zeros with the fewest lines, and which zeros to choose.</div>
+</section>
+
+<!-- ============================== 13 NETWORK ============================== -->
+<section class="chap" id="s-network">
+  <header class="tb"><div class="code">NET</div><div class="main"><div class="lab">13 / Network models</div><h1>Network models</h1><p class="sub">Draw the graph · shortest paths · spanning trees · maximum flow</p></div><div class="meta"><span>Sheet</span><b>13 of 25</b><span>Flows and plans</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>A <b>network</b> has <b>nodes</b> (places) joined by <b>edges</b> (roads, pipes, cables). This module answers three kinds of question: the <b>shortest route</b>, the <b>cheapest way to connect everything</b> (spanning tree), and the <b>largest flow</b> from a source to a sink.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>Routes in a road or data network, cable layouts, water or traffic flow.</li><li>Finding the weakest link: the <b>minimum cut</b> equals the maximum flow.</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Network models</b>. Draw the graph with the tools (chapter <a href="#s-enter">5.4</a>): <b>Add node</b>, <b>Add edge</b>, <b>Move</b>, <b>Delete</b>. Or edit the table of edges.</li>
+    <li>Give each edge a <b>Weight</b> (length or cost). For max flow, give a <b>Cap.</b> (capacity). Tick <b>directed</b> for a one-way edge.</li>
+    <li>Choose the <b>Source</b> and the <b>Sink / target</b>.</li>
+    <li>Choose the method: <b>Dijkstra</b>, <b>Bellman–Ford</b>, <b>Floyd</b> (all pairs), <b>Kruskal</b>, <b>Prim</b> (spanning tree) or <b>Max flow</b>.</li>
+  </ol>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <p>A <b>Graph</b> tab that is redrawn at each step, with labels on the nodes. For shortest paths, it also gives a table of distances; for max flow, a table of flow on each edge and the minimum cut. There is also a Diff mode and a Tutor mode.</p>
+  <figure class="mod"><img src="assets/m-network.jpg" alt="Shortest route result"><figcaption><b>Fig 13.1</b> · The result for <code>net-short</code>: the shortest route from node 1 to node 5 and the distance to every node.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li><b>Dijkstra</b> gives each node a distance label. A node becomes <i>permanent</i> when its label cannot improve. The <b>Via</b> column tells the node you came from, so you can follow the route backwards.</li><li><b>Spanning tree:</b> the chosen edges join all nodes with the least total weight and no loop.</li><li><b>Max flow</b> shows <code>flow/capacity</code> on each edge. <b>Saturated</b> edges are full. The <b>min cut</b> edges are the bottleneck.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <table class="t">
+    <colgroup><col style="width:24%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row"><code>net-short</code></th><td>Dijkstra, 13 steps. Shortest route <b>1 → 2 → 4 → 5, length 10</b>. Distances: node 2 = 3, node 3 = 7, node 4 = 5, node 5 = 10.</td></tr>
+      <tr><th scope="row"><code>net-flow</code></th><td>Max flow from S to T: <b>15</b>. Edges S→A (10/10) and D→T (10/10) are saturated. The minimum cut is made of A→C and D→T, with capacity 5 + 10 = 15, equal to the flow.</td></tr>
+      <tr><th scope="row"><code>net-neg</code></th><td>A graph with a negative edge. Dijkstra refuses it; <b>Bellman–Ford</b> handles it.</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li><b>Dijkstra cannot use negative weights.</b> Switch to Bellman–Ford.</li><li>Make sure <b>Source</b> and <b>Sink</b> are set (they show a dash when empty).</li><li>An edge is <b>two-way</b> unless you tick <i>directed</i>. For a one-way road, tick it.</li></ul></div>
+  <div class="box tip"><span class="tag">Tip</span>You can draw the graph in any layout. Moving a node only changes the picture, never the answer.</div>
+</section>
+
+<!-- ============================== 14 PROJECT ============================== -->
+<section class="chap" id="s-project">
+  <header class="tb"><div class="code">PM</div><div class="main"><div class="lab">14 / Project planning</div><h1>Project planning</h1><p class="sub">CPM · PERT · floats · Gantt chart · network diagram · time–cost crashing</p></div><div class="meta"><span>Sheet</span><b>14 of 25</b><span>Flows and plans</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>A project is a set of <b>activities</b>, and some cannot start until others finish. This module finds the <b>shortest time</b> to finish the whole project, and the <b>critical path</b>: the chain of activities that cannot be delayed without delaying the project.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li><b>CPM</b> when the time of each activity is known.</li><li><b>PERT</b> when times are uncertain, so you give three estimates.</li><li><b>Crashing</b> when you want to finish earlier by paying extra, at the least cost.</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Project planning</b> and choose <b>CPM</b>, <b>PERT</b> or <b>Crashing</b>.</li>
+    <li>Add a row for every activity. <b>Id</b> is its name (A, B…). <b>After</b> lists the activities that must finish first, separated by commas (for example <code>C, D</code>). Leave it empty if it can start at once.</li>
+    <li>CPM: type the <b>Time</b>. PERT: type <b>a</b> (best case), <b>m</b> (most likely) and <b>b</b> (worst case). Crashing: type the normal <b>Time</b>, <b>Cn</b> (normal cost), <b>Dc</b> (crash duration) and <b>Cc</b> (crash cost).</li>
+    <li>Optionally type a <b>Deadline</b>. For PERT you can choose a <b>Target time T</b> in the result.</li>
+  </ol>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <ul class="dots"><li><b>Schedule:</b> the table te, ES, EF, LS, LF and floats for each activity, built step by step (forward pass, then backward pass).</li><li><b>Gantt:</b> bars on a time line. <b>Network:</b> the activity-on-node diagram. <b>Crashing:</b> a cost versus time chart and a plan. Diff mode and Tutor mode also exist.</li></ul>
+  <figure class="mod"><img src="assets/m-project.jpg" alt="Schedule table"><figcaption><b>Fig 14.1</b> · The schedule of <code>pr-cpm</code>. Rows marked CRITICAL have zero total float.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li><b>ES / EF</b> are the earliest start and finish. <b>LS / LF</b> are the latest start and finish that do not delay the project.</li><li><b>Total float</b> = how long an activity can be late without delaying the project. <b>Free float</b> = how long it can be late without delaying the next activity.</li><li><b>Critical</b> activities have <b>zero float</b>. Together they form the critical path.</li><li><b>PERT:</b> expected time <code>(a + 4m + b) / 6</code>; variance <code>((b − a) / 6)²</code>. The module adds the variances along the critical path and gives the <b>probability</b> of finishing by a target time.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <table class="t">
+    <colgroup><col style="width:24%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row"><code>pr-cpm</code></th><td>A=3, B=5, C=2 (after A), D=4 (after B), E=3 (after C, D), F=2 (after E). Project duration <b>14</b>. Critical path <b>B → D → E → F</b>. A and C have 4 days of float.</td></tr>
+      <tr><th scope="row"><code>pr-pert</code></th><td>Duration <b>14</b>, critical path A → C → E, variance 2.3333 (σ = 1.528). The chance to finish by <b>T = 16 is 90.5 %</b>. It is 95 % sure to finish within 16.51.</td></tr>
+      <tr><th scope="row"><code>pr-crash</code></th><td>Normal duration 9 at cost 360. Crash plan: 8 days for 30 more, 7 days for 70 more, 6 days for 130 more. The project <b>cannot go below 6</b> days.</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>Write predecessors exactly as the activity ids, and separate them with commas.</li><li>A <b>loop</b> (A after B, B after A) is impossible. The app reports a <i>Cyclic dependency</i> and names the loop.</li><li>Do not mix units: use the same time unit (days or weeks) for every activity.</li></ul></div>
+</section>
+
+<!-- ============================== 15 QUEUING ============================== -->
+<section class="chap" id="s-queuing">
+  <header class="tb"><div class="code">Q</div><div class="main"><div class="lab">15 / Queuing analysis</div><h1>Queuing analysis</h1><p class="sub">Live λ / μ / c sliders · performance measures · cost-optimal number of servers</p></div><div class="meta"><span>Sheet</span><b>15 of 25</b><span>Uncertainty</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>It studies <b>waiting lines</b>. Customers arrive at random, wait if all servers are busy, and are served. The module tells you how long people wait, how many are in line, and how busy the servers are, using formulas.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>Bank counters, ticket windows, call centres, hospital desks, a repair shop.</li><li>Deciding <b>how many servers</b> to hire: more servers cost money, but fewer cause long waits.</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Queuing analysis</b> and choose the model in the <b>Method</b> switch (see the table). The name is written as <i>arrivals / service / servers</i>. The letter <b>M</b> means random times with an average (a Poisson stream of arrivals, exponential service).</li>
+    <li>Type the <b>Arrival rate λ</b> (customers per time unit) and the <b>Service rate μ</b> (customers one server can serve per time unit).</li>
+    <li>Type the other numbers the model needs: servers <b>c</b>, system capacity <b>N</b>, or, for M/G/1, the spread <b>σ</b> of the service time.</li>
+    <li>Optional: the <b>cost per server Cₛ</b> and the <b>waiting cost Cw</b> (per customer per time unit) for the cost model.</li>
+    <li>Use the <b>live sliders</b> for λ, μ and c. The answers change as you move them.</li>
+  </ol>
+  <table class="t zebra">
+    <colgroup><col style="width:17%"><col></colgroup>
+    <thead><tr><th>Model</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">M/M/1</th><td>One server, unlimited waiting room.</td></tr>
+      <tr><th scope="row">M/M/c</th><td>c servers sharing one line (a call centre).</td></tr>
+      <tr><th scope="row">M/M/1/N</th><td>One server, and at most N customers in the system. Customers who find it full are lost.</td></tr>
+      <tr><th scope="row">M/M/c/N</th><td>c servers, at most N customers.</td></tr>
+      <tr><th scope="row">Machines</th><td>A small group of machines that break down and are fixed by c repairers.</td></tr>
+      <tr><th scope="row">M/G/1</th><td>One server, service time of any shape. You give its standard deviation σ (0 means a fixed service time).</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <ul class="dots"><li><b>Measures:</b> the main numbers, utilisation and probabilities, a plain-words paragraph and the formulas used.</li><li><b>Sensitivity:</b> a chart of the queue length against the arrival rate λ. The curve climbs steeply as ρ gets close to 1, and a dot marks your current λ.</li><li><b>Cost model:</b> total cost for each number of servers, and the best number.</li></ul>
+  <figure class="mod"><img src="assets/m-queuing.jpg" alt="Queue measures"><figcaption><b>Fig 15.1</b> · Measures for <code>q-mm1</code>.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <table class="t">
+    <colgroup><col style="width:22%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row">ρ (rho)</th><td>Traffic intensity: how busy the servers are, <code>λ / (c·μ)</code>. It must be <b>less than 1</b>, or the queue grows forever. The banner says <span class="chip g">Stable</span> or not.</td></tr>
+      <tr><th scope="row">Lₛ, Lq</th><td>Average number of customers <b>in the system</b>, and <b>in the queue</b> only.</td></tr>
+      <tr><th scope="row">Wₛ, Wq</th><td>Average time <b>in the system</b>, and <b>waiting</b> in the queue only.</td></tr>
+      <tr><th scope="row">P₀, P(wait)</th><td>Chance that the system is empty, and the chance that a customer has to wait.</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <p>Library problem <code>q-mm1</code> (one clerk): λ = 2 customers per hour, μ = 3 per hour. The result is <span class="chip g">Stable</span> with <b>ρ = 0.6667</b>, <b>Lₛ = 2</b>, <b>Lq = 1.3333</b>, <b>Wₛ = 1</b> hour and <b>Wq = 0.6667</b> hour. The clerk is busy 66.67 % of the time and 66.67 % of customers have to wait.</p>
+  <p>Library problem <code>q-cost</code>: λ = 10, μ = 3, server cost 20 per hour, waiting cost 30 per customer-hour. With 4 servers (ρ = 0.8333) the total cost is 278.66 (server cost 80 plus waiting cost 198.66). The <b>Cost model</b> tab shows the best choice is <b>5 servers</b>.</p>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>λ and μ must use the <b>same time unit</b>. Do not mix "per hour" and "per minute".</li><li>If <b>ρ ≥ 1</b> in a model without a capacity limit, there is no steady state. Add servers or lower λ.</li><li>μ is the rate of <b>one</b> server, not of the whole group.</li></ul></div>
+  <div class="box tip"><span class="tag">Tip</span>Slide λ slowly towards μ and watch the queue length explode. This shows why a server that is "almost full" gives very long waits.</div>
+</section>
+
+<!-- ============================== 16 INVENTORY ============================== -->
+<section class="chap" id="s-inventory">
+  <header class="tb"><div class="code">INV</div><div class="main"><div class="lab">16 / Inventory</div><h1>Inventory</h1><p class="sub">EOQ · production lots · planned shortages · quantity discounts · newsvendor</p></div><div class="meta"><span>Sheet</span><b>16 of 25</b><span>Uncertainty</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>How much should you order, and when? Ordering often costs a fixed fee each time. Keeping stock costs money too. The module finds the order size with the <b>lowest total cost</b>.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>Shops and stores that re-order the same item again and again.</li><li>Factories that make items in batches.</li><li>One-time stock decisions with uncertain demand (the <b>newsvendor</b>: a daily newspaper that cannot be sold tomorrow).</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Inventory</b> and choose the model in the <b>Method</b> switch.</li>
+    <li>Type the numbers shown: <b>Demand D</b> (per period), <b>Set-up cost K</b> (per order), <b>Holding cost h</b> (per unit per period), <b>Unit cost c</b>, and optionally the <b>Lead time L</b> (same time unit as D).</li>
+    <li>For <b>EPQ</b>, add the <b>Production rate k</b> (it must be larger than D). For <b>Shortages</b>, add the <b>Shortage cost p</b>.</li>
+    <li>For <b>Discounts</b>, fill the table <b>From qty / Unit price</b> (add rows with <b>+ price break</b>), choose <b>All units</b> or <b>Incremental</b>, and give the holding cost as a rate <b>I</b> of the price.</li>
+    <li>For the <b>Newsvendor</b>, type the selling price, cost and salvage value, and choose the demand: <b>Normal</b> (mean and standard deviation), <b>Uniform</b> or <b>Discrete</b> (a table).</li>
+  </ol>
+  <table class="t zebra">
+    <colgroup><col style="width:17%"><col></colgroup>
+    <thead><tr><th>Model</th><th>Idea</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">EOQ</th><td>Economic order quantity. Items arrive all at once.</td></tr>
+      <tr><th scope="row">EPQ</th><td>Economic production quantity. Items are made at rate k while they are used.</td></tr>
+      <tr><th scope="row">Shortages</th><td>You may run out and fill the order later at a penalty p.</td></tr>
+      <tr><th scope="row">Discounts</th><td>The price falls when you buy more. The best tier that is feasible wins.</td></tr>
+      <tr><th scope="row">Newsvendor</th><td>One period with random demand and leftover stock sold at a salvage price.</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <ul class="dots"><li><b>Policy:</b> the order quantity, reorder point, cycle length, orders per period, and the cost split into ordering, holding, purchase and total. A short paragraph in plain words, and the derivation with formulas.</li><li><b>Cost curve:</b> total cost against order size, with the best point marked.</li></ul>
+  <figure class="mod"><img src="assets/m-inventory.jpg" alt="Inventory policy"><figcaption><b>Fig 16.1</b> · The policy for <code>inv-eoq</code>.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li><b>Q*</b> is the best order quantity.</li><li><b>Reorder point</b> is the stock level at which you place the next order, so the new stock arrives as you run out.</li><li>At the best EOQ, <b>ordering cost equals holding cost</b>. The curves cross where their sum is lowest.</li><li>For the newsvendor, the <b>critical ratio</b> (underage ÷ (underage + overage)) sets the stock level.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <p>Library problem <code>inv-eoq</code> (Taha 13.3-1): D = 1000 per period, K = 100, h = 2, c = 10, L = 0.1.</p>
+  <table class="t">
+    <colgroup><col style="width:30%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row">Formula</th><td><code>Q* = √(2KD / h) = √(2·100·1000 / 2)</code></td></tr>
+      <tr><th scope="row">Result</th><td><span class="chip g">Optimal policy</span> &nbsp; <b>Q* = 316.23</b> units, cycle length 0.3162, 3.16 orders per period, <b>reorder point 100</b>.</td></tr>
+      <tr><th scope="row">Costs per period</th><td>Ordering 316.23 + holding 316.23 + purchase 10,000 = <b>10,632.46</b>.</td></tr>
+    </tbody>
+  </table>
+  <p>Library problem <code>inv-news</code>: price 10, cost 6, salvage 2, demand Normal(100, 20). The critical ratio is (10 − 6) / (10 − 2) = 0.5, so the best stock level is <b>100</b>.</p>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>D, K and h must refer to the <b>same time period</b> (for example all per year).</li><li>In the EPQ model, the production rate k must be <b>larger</b> than the demand D, or the app says <i>Check inputs</i>.</li><li>In discount models, enter the holding cost as a <b>rate</b> of the price (for example 0.2), not an amount.</li></ul></div>
+</section>
+
+<!-- ============================== 17 GAMES ============================== -->
+<section class="chap" id="s-games">
+  <header class="tb"><div class="code">GT</div><div class="main"><div class="lab">17 / Zero-sum games</div><h1>Zero-sum games</h1><p class="sub">Saddle points · dominance · graphical method · exact LP strategies</p></div><div class="meta"><span>Sheet</span><b>17 of 25</b><span>Uncertainty</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>Two players choose actions at the same time. A table shows what the <b>row player</b> wins for each pair of choices. What one player wins, the other loses: this is a <b>zero-sum</b> game. The module finds the <b>best strategy</b> for each player and the <b>value of the game</b>.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>Competition between two companies, teams or armies.</li><li>Any "I choose, you choose, what do we get" table.</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Zero-sum games</b>. The grid is the <b>payoff matrix to the row player</b>.</li>
+    <li>Type the payoffs. A positive number means the row player wins; a negative number means the row player loses.</li>
+    <li>Use <b>+ / −</b> next to <b>Rows</b> and <b>Columns</b> to set the size. Rename the strategies (A1, A2… and B1, B2…).</li>
+    <li>There is no method to choose: the app uses what fits (saddle point, dominance, graphical for 2 × n or m × 2, or linear programming). Use the step player.</li>
+  </ol>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <p>A <b>Solution</b> tab with the steps (the saddle point check, strikes of dominated rows or columns, the graph or the LP), the <b>optimal strategies</b> for both players, the value, and a heatmap of the payoffs. A <i>Verified</i> badge shows that the answer was checked. Tutor mode and Diff mode are available.</p>
+  <figure class="mod"><img src="assets/m-games.jpg" alt="Optimal mixed strategies"><figcaption><b>Fig 17.1</b> · The last step of <code>g-dom</code>: mixed strategies for both players and the value 8/3.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li><b>Maximin</b> is the best "worst case" for the row player (the largest of the row minimums). <b>Minimax</b> is the best "worst case" for the column player (the smallest of the column maximums).</li><li>If they are <b>equal</b>, there is a <b>saddle point</b>: each player picks one action for sure (a <i>pure</i> strategy).</li><li>If not, each player <b>mixes</b>: the numbers show the share of the time to play each action.</li><li>The <b>value</b> is what the row player wins on average. A value of 0 means the game is fair.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <table class="t">
+    <colgroup><col style="width:24%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row"><code>g-saddle</code></th><td>Payoffs <code>3 5 4 / 2 1 0 / 1 6 3</code>. Row minimums are 3, 0, 1, so maximin = 3. Column maximums are 3, 6, 4, so minimax = 3. Saddle point at (A1, B1), <b>value 3</b>.</td></tr>
+      <tr><th scope="row"><code>g-dom</code></th><td>A 4 × 4 game. Maximin 2 ≠ minimax 4, so there is no saddle point. After dominance and the LP method: row player plays A3 with ⅔ and A4 with ⅓; column player plays B3 with ⅔ and B4 with ⅓. <b>Value = 8/3</b> (about 2.667). It favours the row player.</td></tr>
+      <tr><th scope="row"><code>g-pennies</code></th><td>Matching pennies: both mix ½–½, <b>value 0</b>.</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>Enter payoffs <b>to the row player</b>. If your table shows what the <i>column</i> player wins, change every sign.</li><li>The app says <i>No saddle point</i> in the diagnostics. That is not an error. It means a mixed strategy is needed.</li></ul></div>
+</section>
+
+<!-- ============================== 18 MARKOV ============================== -->
+<section class="chap" id="s-markov">
+  <header class="tb"><div class="code">MC</div><div class="main"><div class="lab">18 / Markov chains</div><h1>Markov chains</h1><p class="sub">n-step probabilities · exact steady state · classes and periodicity · absorption · first passage</p></div><div class="meta"><span>Sheet</span><b>18 of 25</b><span>Uncertainty</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>A system is always in one of a few <b>states</b>. At each step it moves to another state (or stays) with fixed probabilities. The module tells you where it will be after n steps, and what happens in the long run.</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>Weather (sunny or rainy), customers switching brands, machine states (working, broken).</li><li>Random walks such as the <b>gambler's ruin</b>, where some states are <b>absorbing</b> (you stay there forever).</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Markov chains</b>. In the <b>Transition probabilities</b> grid, row <i>i</i> and column <i>j</i> is the chance to go <b>from</b> state <i>i</i> <b>to</b> state <i>j</i>.</li>
+    <li>Each row must add up to 1. The <b>Σ</b> column shows each row's total as you type.</li>
+    <li>Change the number of states with the <b>Size</b> buttons. Rename the states.</li>
+    <li>Type <b>Steps n</b> (0 to 500) and the <b>Initial distribution</b> (where the system starts, as probabilities that add up to 1).</li>
+  </ol>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <ul class="dots"><li><b>Analysis:</b> classification of the states, the steady-state distribution, the matrix Pⁿ, the distribution after n steps, mean first-passage times and, for absorbing chains, the absorption results.</li><li><b>Diagram:</b> the chain drawn as a state diagram, with the probability on each arrow.</li><li><b>Convergence:</b> a chart of the distribution over time, with an <b>Animate</b> button. The lines flatten onto the steady state.</li></ul>
+  <figure class="mod"><img src="assets/m-markov.jpg" alt="Markov analysis"><figcaption><b>Fig 18.1</b> · Analysis tab for the weather chain <code>mk-weather</code>.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li><b>Irreducible</b>: every state can be reached from every other. <b>Aperiodic</b>: the chain does not run in a fixed cycle.</li><li><b>Steady state π</b> is the share of time spent in each state in the long run. It solves <code>πP = π</code> with the shares adding up to 1.</li><li><b>Mean first-passage time</b> is the average number of steps to reach a state for the first time. On the diagonal it is the mean return time, <code>1/πⱼ</code>.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <p>Library problem <code>mk-weather</code>: P = <code>[[0.7, 0.3], [0.4, 0.6]]</code>, start Sunny, n = 10. The chain is <b>irreducible and aperiodic</b>. The steady state is <b>π = (4/7, 3/7)</b>, about 0.571 sunny and 0.429 rainy. After 10 steps from Sunny, the distribution is already 0.5714 and 0.4286. The mean return time to Sunny is 7/4 steps.</p>
+  <p>Try <code>mk-abs</code> (gambler's ruin, with absorbing states Broke and Win) and <code>mk-period</code> (a flip-flop of period 2: Pⁿ never settles, yet π = (½, ½) exists).</p>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>Check the <b>Σ</b> column: every row must add up to 1.</li><li>A periodic chain has no limiting distribution for Pⁿ, but it still has a steady state.</li></ul></div>
+  <div class="box tip"><span class="tag">Tip</span>Type fractions such as <code>1/3</code> to keep the answers exact.</div>
+</section>
+
+<!-- ============================== 19 SIMULATION ============================== -->
+<section class="chap" id="s-simulation">
+  <header class="tb"><div class="code">SIM</div><div class="main"><div class="lab">19 / Simulation</div><h1>Simulation</h1><p class="sub">Monte Carlo · Queue sim · Demand table · Inventory simulation · RNG lab</p></div><div class="meta"><span>Sheet</span><b>19 of 25</b><span>Uncertainty</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>When a system is too complex for a formula, you can <b>imitate it on the computer</b> many times with random numbers, and watch what happens on average. This module has five tools, chosen in the <b>Method</b> switch.</p>
+  <table class="t zebra">
+    <colgroup><col style="width:20%"><col style="width:40%"><col></colgroup>
+    <thead><tr><th>Tool</th><th>What it does</th><th>Result tabs</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Monte Carlo</th><td>Estimates an average (or a probability) by trying a formula on many random inputs.</td><td>Mean, spread, confidence interval, histogram, convergence plot</td></tr>
+      <tr><th scope="row">Queue sim</th><td>Runs a waiting line with random arrivals and service, one customer at a time.</td><td>Results, Event trace</td></tr>
+      <tr><th scope="row">Demand table</th><td>Simulates daily demand from a probability table, using random-number intervals (the classroom method).</td><td>Walkthrough, Simulation table, Summary</td></tr>
+      <tr><th scope="row">Inventory</th><td>Simulates a periodic-review stock policy day by day and searches for the best order-up-to level S.</td><td>Walkthrough, Day table, Policy search, Totals</td></tr>
+      <tr><th scope="row">RNG lab</th><td>Shows how random numbers are made (mid-square, congruential, Mersenne Twister) and tests them.</td><td>Working table, cycle and period, tests, plot</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>No simple formula exists, or you want to check one (compare the Queue sim with the Queuing module).</li><li>Your course asks for <b>hand simulation with random-number tables</b> (Unit 7, Experiment 10).</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Simulation</b> and choose a tool.</li>
+    <li><b>Monte Carlo and Queue sim</b> start with the <b>Random numbers</b> card: a <b>Seed</b> (the same seed always gives the same results), the <b>Generator</b> (Mersenne Twister or LCG 16807), <b>New random seed</b> and <b>Re-run</b>.</li>
+    <li><b>Monte Carlo:</b> add random variables with <b>+ random variable</b>. Choose each one's distribution (uniform, exponential, normal, triangular, Poisson, discrete or constant) and its parameters. Type the <b>Expression</b> that combines them, the number of <b>Trials</b> and, if you like, a <b>Threshold</b> to estimate the chance that the result is at least that value.</li>
+    <li><b>Queue sim:</b> choose the <b>Interarrival</b> and <b>Service</b> distributions, the number of <b>Servers</b>, <b>Customers</b>, and a <b>Warm-up</b> (customers ignored at the start).</li>
+    <li><b>Demand table:</b> fill <b>Demand / Probability</b> rows (they must total 1). Choose <b>Given list</b> to type your own random numbers, or <b>Generate</b>. Set the <b>Digits per random number</b> and the <b>Interval convention</b> (00–99 or 01–100).</li>
+    <li><b>Inventory:</b> type the policy (<b>Order-up-to level S</b>, <b>Review every R days</b>, <b>Initial stock</b>, ordering, holding and shortage costs, <b>Lost sales</b> or <b>Backorders</b>), the demand table, the lead time (<b>Fixed</b> or <b>Random</b>) and the random numbers. <b>Policy search</b> tries a range of S.</li>
+    <li><b>RNG lab:</b> choose a <b>Method</b>, type its numbers (for the congruential method: <b>a, c, m</b> and the seed <b>X₀</b>, or a preset such as <i>Short cycle</i>) and a <b>Sample size</b>.</li>
+  </ol>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <figure class="mod w80"><img src="assets/sim-mc.jpg" alt="Monte Carlo result"><figcaption><b>Fig 19.1</b> · Monte Carlo (<code>sim-pi</code>): the estimate, its confidence interval, the histogram and the convergence plot.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li><b>Mean</b> is the estimate. The <b>95 % confidence interval</b> is the range that very likely holds the true value. It <b>shrinks like 1/√n</b>: four times the trials halve the width.</li><li>The <b>convergence plot</b> shows the estimate settling as trials grow. In the Queue sim, a line shows the formula's value so you can compare.</li><li>The <b>Demand table</b> and <b>Inventory</b> tools show every day in a table, so you can check your hand work row by row.</li><li>In the <b>RNG lab</b>, the <b>period</b> is how many numbers come before the sequence repeats, and the <b>chi-square</b> test checks that the numbers spread evenly.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini examples</p>
+  <table class="t">
+    <colgroup><col style="width:25%"><col></colgroup>
+    <tbody>
+      <tr><th scope="row"><code>sim-pi</code></th><td>Estimate π: random points (x, y) in a square, count those inside the quarter circle. With seed 12345 and 20,000 trials: <b>mean ≈ 3.138</b>, 95 % interval [3.11521, 3.16079].</td></tr>
+      <tr><th scope="row"><code>sim-queue</code></th><td>An M/M/1 queue with λ = 2 and μ = 3, 5,000 customers. Simulated waiting time <b>Wq ≈ 0.6229</b>; the formula gives 0.6667.</td></tr>
+      <tr><th scope="row"><code>sim-inv-sS</code></th><td>Ten days, order up to S = 8, review every 5 days. <b>Total cost 76</b> (7.6 per day), fill rate 61.9 %. The policy search finds the cheapest S = 11.</td></tr>
+      <tr><th scope="row"><code>sim-rng-lcg</code></th><td><code>X(n+1) = (17·X(n) + 43) mod 100</code> from X₀ = 27 gives 2, 77, 52, 27 and then repeats. <b>Period 4</b>: a poor generator.</td></tr>
+      <tr><th scope="row"><code>sim-exp10-demand</code></th><td>Ten days of cake demand: see <a href="#s-wb">Walk-through B</a>.</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>A simulation gives an <b>estimate</b>, not the exact answer. A 10-day simulation is very noisy; do not expect it to match the formula.</li><li>Click <b>New random seed</b> and <b>Re-run</b> to see how much results change. The same seed always repeats exactly.</li><li>In the demand table the probabilities must <b>total 1</b>. The table shows <i>Total 1</i> when they do.</li><li>The number of digits in each random number must match your table (2 digits for 00 to 99).</li></ul></div>
+</section>
+
+<!-- ============================== 20 SEQUENCING ============================== -->
+<section class="chap" id="s-sequencing">
+  <header class="tb"><div class="code">SEQ</div><div class="main"><div class="lab">20 / Job sequencing</div><h1>Job sequencing</h1><p class="sub">Johnson's rule · three machines · CDS heuristic · exact search · Gantt chart and idle times</p></div><div class="meta"><span>Sheet</span><b>20 of 25</b><span>Flows and plans</span></div></header>
+
+  <p class="part"><span class="pn">1</span>What it solves</p>
+  <p>Several <b>jobs</b> must go through the same <b>machines</b> in the same order (for example first the saw, then the paint). In what <b>order</b> should the jobs enter so that everything is finished as early as possible? The time from the start of the first job to the end of the last job is the <b>total elapsed time</b> (also called the makespan).</p>
+  <p class="part"><span class="pn">2</span>When to use it</p>
+  <ul class="dots"><li>Workshops, printing, assembly and bakery lines.</li><li>Course Unit 7 and Experiment 10 (activities 4 and 5).</li></ul>
+  <p class="part"><span class="pn">3</span>How to enter your problem</p>
+  <ol class="steps">
+    <li>Open <b>Job sequencing</b>. In the grid, each <b>row is a job</b> and each <b>column is a machine</b>, in the order the jobs visit them. Type the processing times.</li>
+    <li>Add or remove jobs and machines with <b>+ / −</b>. Rename a job or machine by typing in its header cell. <b>Clear</b> empties the grid.</li>
+    <li>Choose the method in the title block (see the table).</li>
+    <li>Use the step player to watch the sequence being built, then open the <b>Gantt</b> tab.</li>
+  </ol>
+  <table class="t zebra">
+    <colgroup><col style="width:17%"><col></colgroup>
+    <thead><tr><th>Method</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Johnson</th><td>Two machines. It always gives the best sequence. It also works for <b>three machines</b> if a simple condition holds (the smallest time on machine 1 is at least the largest on machine 2, or the same for machine 3).</td></tr>
+      <tr><th scope="row">CDS</th><td>Three or more machines. A good and fast <b>heuristic</b> (a rule of thumb) from Campbell, Dudek and Smith. Not proven best.</td></tr>
+      <tr><th scope="row">Exact</th><td>Tries <b>every</b> order and keeps the best. Works for up to 9 jobs.</td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">4</span>What you get</p>
+  <ul class="dots"><li><b>Sequence:</b> the best order, the total elapsed time and the <b>idle time</b> of each machine.</li><li><b>Gantt:</b> a bar chart of when each job runs on each machine.</li><li><b>Table:</b> the in and out times of each job on each machine.</li><li><b>Compare:</b> the methods side by side, so you can see how far a heuristic is from the best.</li><li>Tutor mode asks you to place each job.</li></ul>
+  <figure class="mod"><img src="assets/m-sequencing.jpg" alt="Gantt chart"><figcaption><b>Fig 20.1</b> · The Gantt chart of <code>seq-exp10</code>. Gaps on a machine are idle time.</figcaption></figure>
+  <p class="part"><span class="pn">5</span>How to read the result</p>
+  <ul class="dots"><li><b>Johnson's rule:</b> find the smallest time in the table. If it is on the <b>first</b> machine, put that job as <b>early</b> as possible. If it is on the <b>second</b> machine, put it as <b>late</b> as possible. Remove the job and repeat.</li><li><b>Total elapsed time</b> = the time the last job leaves the last machine.</li><li><b>Idle time</b> of a machine = total elapsed time − the sum of its processing times.</li><li>A banner of <i>Heuristic sequence — not proven optimal</i> means the result of CDS or of a three-machine Johnson that may not be best. Compare it with Exact.</li></ul>
+  <p class="part"><span class="pn">6</span>Worked mini example</p>
+  <p>Library problem <code>seq-exp10</code> is the course example (<a href="#s-wc">Walk-through C</a>): 9 jobs on 2 machines, best sequence <b>A → C → I → B → H → F → D → G → E</b>, total elapsed time <b>61 hours</b>, idle <b>11 hours</b> on Machine I and <b>2 hours</b> on Machine II.</p>
+  <p>Library problem <code>seq-4m-cds</code> (four machines, jobs A to E): CDS builds three candidate sequences with total times 52, 53 and 51. The best is <b>E → A → C → D → B, total 51</b>, with idle time 18, 19, 31 and 19 hours on M1 to M4.</p>
+  <p class="part"><span class="pn">7</span>Tips and common mistakes</p>
+  <div class="box warn"><span class="tag">Watch out</span><ul><li>Machines must be in the <b>order of work</b>, from left to right. Every job uses the same order.</li><li>With three machines, check the banner. If the Johnson condition fails, the result is only a heuristic. Try <b>Exact</b>: see <code>seq-3m-nocond</code>, where a better sequence exists.</li><li><b>Ties</b> are normal. Different sequences can give the same total (see <code>seq-ties</code>: total 18). Any one of them is correct.</li></ul></div>
+</section>
+
+<!-- ============================== WALK-THROUGH A ============================== -->
+<section class="chap" id="s-wa">
+  <header class="tb"><div class="code">A</div><div class="main"><div class="lab">A / Worked walk-through</div><h1>Reddy Mikks, from typing to shadow prices</h1><p class="sub">One linear programme, start to finish. Follow it on your own screen.</p></div><div class="meta"><span>Sheet</span><b>A of C</b><span>Linear programming</span></div></header>
+
+  <p><b>The problem.</b> A paint company makes exterior paint (x₁) and interior paint (x₂) from two raw materials, M1 and M2. Each ton of exterior paint earns 5 (thousand dollars) and each ton of interior paint earns 4. The company has 24 tons of M1 and 6 tons of M2 each day. Exterior paint needs 6 tons of M1 and 1 ton of M2 per ton; interior paint needs 4 tons of M1 and 2 tons of M2. The market limits the daily excess of interior over exterior paint to 1 ton, and interior paint sells at most 2 tons a day. <span class="hl">How much of each paint should be made to earn the most?</span></p>
+
+  <ol class="steps">
+    <li><b>Open the module.</b> Click <b>LP</b> in the left rail. The screen opens with an example in the Model box.</li>
+    <li><b>Type the model.</b> Click in the text box, select all (<kbd>Ctrl/⌘</kbd> + <kbd>A</kbd>) and type:
+<pre>max 5x1 + 4x2
+subject to
+  M1: 6x1 + 4x2 &lt;= 24
+  M2: x1 + 2x2 &lt;= 6
+  Market: -x1 + x2 &lt;= 1
+  Demand: x2 &lt;= 2
+  x1, x2 &gt;= 0</pre>
+    The line under the box turns green: <i>2 variables, 4 constraints — parsed</i>. (Or pick <i>Reddy Mikks paint company</i> from the <b>Example</b> list.)</li>
+    <li><b>Read the banner.</b> It says <span class="chip g">Optimal</span> <code>max z = 21</code>, <i>Standard simplex · 2 pivots</i>. The <b>Method</b> is Auto. All rows are ≤ with positive right-hand sides, so the plain simplex was chosen.</li>
+    <li><b>Walk through the steps.</b> Press <kbd>Home</kbd> to go to step 1, then <kbd>→</kbd> to move on. There are 4 steps.</li>
+  </ol>
+  <table class="t">
+    <colgroup><col style="width:10%"><col style="width:22%"><col></colgroup>
+    <thead><tr><th>Step</th><th>Name</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Initialisation</td><td>Each constraint gets a slack variable (s₁ to s₄). The slacks form the starting basis. This is the origin, x = 0 and z = 0.</td></tr>
+      <tr><td>2</td><td>Simplex iteration</td><td><b>x₁ enters</b> (reduced cost −5 is the most negative). Ratio test: 4, 6, —, —. Smallest is 4, so <b>s₁ leaves</b>. Pivot element = 6. z goes from 0 to 20.</td></tr>
+      <tr><td>3</td><td>Simplex iteration</td><td><b>x₂ enters</b> (reduced cost −2/3). Ratios 6, 3/2, 3, 2. Smallest is 3/2, so <b>s₂ leaves</b>. Pivot element = 4/3. z goes from 20 to 21.</td></tr>
+      <tr><td>4</td><td>Termination</td><td>No negative number is left in the z row, so the solution is <b>optimal</b>: x₁ = 3, x₂ = 3/2, z = 21.</td></tr>
+    </tbody>
+  </table>
+  <ol class="steps" start="5" style="counter-reset: st 4">
+    <li><b>Read the Solution card</b> below the last tableau. Variables: <code>x₁ = 3</code>, <code>x₂ = 3/2</code>, <code>z = 21</code>. Constraints: M1 and M2 are marked <span class="chip a">tight</span> (slack 0). Market has slack 5/2 and Demand has slack 1/2.</li>
+    <li><b>Find the shadow prices</b> in the last column of the same card: <b>M1 = 3/4</b> and <b>M2 = 1/2</b>. Market and Demand are 0.</li>
+  </ol>
+  <figure class="mod"><img src="assets/m-lp.jpg" alt="Final tableau and Solution card"><figcaption><b>Fig A.1</b> · Step 4: the final tableau, and below it the Solution card with the shadow prices.</figcaption></figure>
+  <div class="box ok"><span class="tag">What the shadow prices mean</span>One more ton of raw material M1 raises the daily profit by <b>3/4</b> (750 dollars). One more ton of M2 raises it by <b>1/2</b>. More Market or Demand room is worth nothing, because those limits are not tight. If you could buy extra M1 at a price below 0.75 per ton, it would pay.</div>
+
+  <ol class="steps" style="counter-reset: st 6">
+    <li><b>Check the range.</b> Open the <b>Sensitivity</b> tab. For M1 the green bar runs from 20 to 36. Inside this range the shadow price 3/4 stays true. For M2 it runs from 4 to 20/3. Move the <i>what-if RHS</i> slider and watch the sentence change.</li>
+    <li><b>Test it.</b> Change 24 to 26 in the M1 row of the model. The answer becomes <code>z = 22.5</code> at x = (3.5, 1.25). That is 21 + 2 × 3/4, exactly as predicted. Change it back to 24.</li>
+    <li><b>See it on a graph.</b> Open the <b>Graphical</b> tab. The best point (3, 3/2) is where the lines M1 and M2 cross. These are the two tight constraints.</li>
+    <li><b>Keep the work.</b> Click the download icon and choose <b>PDF — full solution</b>, or click <b>Save</b> and name the model (chapter <a href="#s-save">7</a>).</li>
+  </ol>
+  <figure class="mod w80"><img src="assets/lp-graph.jpg" alt="Graphical tab"><figcaption><b>Fig A.2</b> · Step 9: the Graphical tab. The best point is where the two tight constraints cross.</figcaption></figure>
+  <div class="box tip"><span class="tag">Answer in one line</span>Make <b>3 tons</b> of exterior paint and <b>1.5 tons</b> of interior paint each day for a daily profit of <b>21</b> (thousand dollars). Raw materials M1 and M2 are the bottleneck, worth 3/4 and 1/2 per extra ton.</div>
+</section>
+
+<!-- ============================== WALK-THROUGH B ============================== -->
+<section class="chap" id="s-wb">
+  <header class="tb"><div class="code">B</div><div class="main"><div class="lab">B / Worked walk-through</div><h1>Experiment 10, activity 1: demand simulation</h1><p class="sub">Ten days of cake demand in a stationery shop, with the given random numbers.</p></div><div class="meta"><span>Sheet</span><b>B of C</b><span>Simulation</span></div></header>
+
+  <p><b>The problem.</b> A stationery shop sells cakes. Daily demand is not fixed. From past records, the demand and its chance are:</p>
+  <table class="t">
+    <colgroup><col><col><col><col><col><col></colgroup>
+    <thead><tr><th>Demand</th><th class="c">0</th><th class="c">10</th><th class="c">20</th><th class="c">30</th><th class="c">40</th><th class="c">50</th></tr></thead>
+    <tbody><tr><th scope="row">Probability</th><td class="c">0.01</td><td class="c">0.20</td><td class="c">0.15</td><td class="c">0.50</td><td class="c">0.12</td><td class="c">0.02</td></tr></tbody>
+  </table>
+  <p><span class="hl">Simulate ten days</span> with these random numbers (two digits each): <code>40, 19, 87, 83, 73, 84, 29, 09, 02, 20</code>.</p>
+
+  <ol class="steps">
+    <li>Open <b>Simulation</b> (<b>SIM</b> in the rail). In the <b>Method</b> switch choose <b>Demand table</b>.</li>
+    <li>Fill the <b>Demand / Probability</b> table (or choose <i>Stationery shop: ten days of cake demand</i> in the <b>Example</b> list). The note shows <i>Total 1</i>.</li>
+    <li>Under <b>Random numbers and intervals</b> choose <b>Given list</b> and type the ten numbers. Set <b>Digits per random number</b> to 2 and the <b>Interval convention</b> to <b>00–99</b>. The app reads 10 numbers, so it simulates 10 days.</li>
+    <li>Open the <b>Walkthrough</b> tab and press <kbd>→</kbd> to go through the 13 steps.</li>
+  </ol>
+
+  <p class="part"><span class="pn">1</span>Cumulative probability and intervals (steps 1 and 2)</p>
+  <p>Add the probabilities down the table to get the <b>cumulative probability</b>. Multiply by 100 and round (a half rounds up) to get the <b>random-number interval</b> for each demand. A demand with probability <i>p</i> gets about <i>p</i> × 100 of the 100 random numbers 00 to 99.</p>
+  <table class="t zebra">
+    <colgroup><col><col><col><col></colgroup>
+    <thead><tr><th class="c">Demand</th><th class="c">Probability</th><th class="c">Cumulative</th><th class="c">Random-number interval</th></tr></thead>
+    <tbody>
+      <tr><td class="c">0</td><td class="c">0.01</td><td class="c">0.01</td><td class="c"><b>00</b></td></tr>
+      <tr><td class="c">10</td><td class="c">0.20</td><td class="c">0.21</td><td class="c"><b>01 – 20</b></td></tr>
+      <tr><td class="c">20</td><td class="c">0.15</td><td class="c">0.36</td><td class="c"><b>21 – 35</b></td></tr>
+      <tr><td class="c">30</td><td class="c">0.50</td><td class="c">0.86</td><td class="c"><b>36 – 85</b></td></tr>
+      <tr><td class="c">40</td><td class="c">0.12</td><td class="c">0.98</td><td class="c"><b>86 – 97</b></td></tr>
+      <tr><td class="c">50</td><td class="c">0.02</td><td class="c">1.00</td><td class="c"><b>98 – 99</b></td></tr>
+    </tbody>
+  </table>
+
+  <p class="part"><span class="pn">2</span>The ten days (steps 3 to 12)</p>
+  <p>For each day, find the interval that holds the random number. The demand of that interval is the demand for the day. For day 1, the number 40 lies in 36–85, so the demand is 30.</p>
+  <table class="t zebra">
+    <colgroup><col style="width:8%"><col><col><col><col><col></colgroup>
+    <thead><tr><th class="c">Day</th><th class="c">Random no.</th><th class="c">Interval hit</th><th class="c">Demand</th><th class="c">Cumulative demand</th><th class="c">Running average</th></tr></thead>
+    <tbody>
+      <tr><td class="c">1</td><td class="c">40</td><td class="c">36–85</td><td class="c">30</td><td class="c">30</td><td class="c">30</td></tr>
+      <tr><td class="c">2</td><td class="c">19</td><td class="c">01–20</td><td class="c">10</td><td class="c">40</td><td class="c">20</td></tr>
+      <tr><td class="c">3</td><td class="c">87</td><td class="c">86–97</td><td class="c">40</td><td class="c">80</td><td class="c">26.6667</td></tr>
+      <tr><td class="c">4</td><td class="c">83</td><td class="c">36–85</td><td class="c">30</td><td class="c">110</td><td class="c">27.5</td></tr>
+      <tr><td class="c">5</td><td class="c">73</td><td class="c">36–85</td><td class="c">30</td><td class="c">140</td><td class="c">28</td></tr>
+      <tr><td class="c">6</td><td class="c">84</td><td class="c">36–85</td><td class="c">30</td><td class="c">170</td><td class="c">28.3333</td></tr>
+      <tr><td class="c">7</td><td class="c">29</td><td class="c">21–35</td><td class="c">20</td><td class="c">190</td><td class="c">27.1429</td></tr>
+      <tr><td class="c">8</td><td class="c">09</td><td class="c">01–20</td><td class="c">10</td><td class="c">200</td><td class="c">25</td></tr>
+      <tr><td class="c">9</td><td class="c">02</td><td class="c">01–20</td><td class="c">10</td><td class="c">210</td><td class="c">23.3333</td></tr>
+      <tr><td class="c">10</td><td class="c">20</td><td class="c">01–20</td><td class="c">10</td><td class="c"><b>220</b></td><td class="c"><b>22</b></td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">3</span>The summary (step 13)</p>
+  <ul class="dots">
+    <li>The simulated demand is <b>220 cakes</b> in 10 days, an average of <b>22 per day</b>.</li>
+    <li>The theoretical (expected) demand is <code>E[D] = Σ x·p = 25.8</code> per day.</li>
+    <li>The gap is <b>−3.8</b>. Ten days is a very small sample. The gap shrinks roughly like 1/√n as you simulate more days.</li>
+  </ul>
+  <figure class="mod"><img src="assets/m-simulation.jpg" alt="Simulation table tab"><figcaption><b>Fig B.1</b> · The <b>Simulation table</b> tab: the same table as above, with the totals underneath.</figcaption></figure>
+  <div class="box tip"><span class="tag">Try this</span>Choose <b>Generate</b> instead of <b>Given list</b> and increase the number of days. The simulated mean moves towards 25.8. Compare it with your hand result for 10 days.</div>
+  <div class="box warn"><span class="tag">Watch out</span>If your textbook uses the convention <b>01–100</b> (so that 00 stands for 100), change the <b>Interval convention</b> to <b>01–100</b>. The intervals shift by one number and a different day may fall in another interval.</div>
+</section>
+
+<!-- ============================== WALK-THROUGH C ============================== -->
+<section class="chap" id="s-wc">
+  <header class="tb"><div class="code">C</div><div class="main"><div class="lab">C / Worked walk-through</div><h1>Experiment 10, activity 4: Johnson's rule</h1><p class="sub">Nine jobs on two machines: the best order, the total time and the idle time.</p></div><div class="meta"><span>Sheet</span><b>C of C</b><span>Job sequencing</span></div></header>
+
+  <p><b>The problem.</b> Nine jobs A to I each need Machine I first and then Machine II. The times (hours) are:</p>
+  <table class="t">
+    <colgroup><col style="width:17%"><col><col><col><col><col><col><col><col><col></colgroup>
+    <thead><tr><th>Job</th><th class="c">A</th><th class="c">B</th><th class="c">C</th><th class="c">D</th><th class="c">E</th><th class="c">F</th><th class="c">G</th><th class="c">H</th><th class="c">I</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Machine I</th><td class="c">2</td><td class="c">5</td><td class="c">4</td><td class="c">9</td><td class="c">6</td><td class="c">8</td><td class="c">7</td><td class="c">5</td><td class="c">4</td></tr>
+      <tr><th scope="row">Machine II</th><td class="c">6</td><td class="c">8</td><td class="c">7</td><td class="c">4</td><td class="c">3</td><td class="c">9</td><td class="c">3</td><td class="c">8</td><td class="c">11</td></tr>
+    </tbody>
+  </table>
+  <p><span class="hl">In what order should the jobs run to finish as early as possible?</span> What are the total elapsed time and the idle times?</p>
+
+  <ol class="steps">
+    <li>Open <b>Job sequencing</b> (<b>SEQ</b>). Choose the method <b>Johnson</b>.</li>
+    <li>Set the grid to <b>9 rows</b> and <b>2 columns</b> and type the times. Rename the columns <i>Machine I</i> and <i>Machine II</i>. (Or pick <i>Nine jobs, two machines (Experiment 10)</i> in the <b>Example</b> list.)</li>
+    <li>Use the step player. There are 12 steps. Steps 2 to 10 place the jobs one by one.</li>
+  </ol>
+
+  <p class="part"><span class="pn">1</span>Building the sequence with Johnson's rule</p>
+  <p>At each step, find the smallest time among the jobs not yet placed. If it is on <b>Machine I</b>, put that job in the <b>first free slot</b> from the front. If it is on <b>Machine II</b>, put it in the <b>last free slot</b> from the back. Ties can be broken in any way.</p>
+  <table class="t zebra">
+    <colgroup><col style="width:9%"><col style="width:33%"><col></colgroup>
+    <thead><tr><th class="c">Step</th><th>Smallest time left</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td class="c">2</td><td>2: job A on Machine I</td><td>A goes to the front, slot 1</td></tr>
+      <tr><td class="c">3</td><td>3: job E on Machine II</td><td>E goes to the back, slot 9 (G also has 3: a tie)</td></tr>
+      <tr><td class="c">4</td><td>3: job G on Machine II</td><td>G goes to slot 8</td></tr>
+      <tr><td class="c">5</td><td>4: job C on Machine I</td><td>C goes to slot 2</td></tr>
+      <tr><td class="c">6</td><td>4: job I on Machine I</td><td>I goes to slot 3</td></tr>
+      <tr><td class="c">7</td><td>4: job D on Machine II</td><td>D goes to slot 7</td></tr>
+      <tr><td class="c">8</td><td>5: job B on Machine I</td><td>B goes to slot 4</td></tr>
+      <tr><td class="c">9</td><td>5: job H on Machine I</td><td>H goes to slot 5</td></tr>
+      <tr><td class="c">10</td><td>8: job F on Machine I</td><td>F goes to slot 6</td></tr>
+    </tbody>
+  </table>
+  <div class="box ok"><span class="tag">The sequence</span><span style="font-family:var(--mono);font-size:11pt;color:var(--ink)"><b>A → C → I → B → H → F → D → G → E</b></span></div>
+
+  <p class="part"><span class="pn">2</span>The timing (step 11)</p>
+  <p>A job starts on a machine when both the previous job has left that machine and this job has left the previous machine. So <code>in = max(out of previous job on this machine, out of this job on the previous machine)</code> and <code>out = in + time</code>.</p>
+  <table class="t">
+    <colgroup><col style="width:14%"><col><col><col><col><col><col><col><col><col></colgroup>
+    <thead><tr><th>Job</th><th class="c">A</th><th class="c">C</th><th class="c">I</th><th class="c">B</th><th class="c">H</th><th class="c">F</th><th class="c">D</th><th class="c">G</th><th class="c">E</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">M I in–out</th><td class="c">0–2</td><td class="c">2–6</td><td class="c">6–10</td><td class="c">10–15</td><td class="c">15–20</td><td class="c">20–28</td><td class="c">28–37</td><td class="c">37–44</td><td class="c">44–50</td></tr>
+      <tr><th scope="row">M II in–out</th><td class="c">2–8</td><td class="c">8–15</td><td class="c">15–26</td><td class="c">26–34</td><td class="c">34–42</td><td class="c">42–51</td><td class="c">51–55</td><td class="c">55–58</td><td class="c">58–61</td></tr>
+    </tbody>
+  </table>
+
+  <p class="part"><span class="pn">3</span>The result (step 12)</p>
+  <ul class="dots">
+    <li><b>Total elapsed time = 61 hours.</b> The last job (E) leaves Machine II at hour 61.</li>
+    <li><b>Idle time of a machine</b> = total elapsed time − the sum of its processing times.</li>
+    <li>Machine I works 2+5+4+9+6+8+7+5+4 = 50 hours, so it is idle <b>61 − 50 = 11 hours</b> (waiting at the end, after job E).</li>
+    <li>Machine II works 6+8+7+4+3+9+3+8+11 = 59 hours, so it is idle <b>61 − 59 = 2 hours</b> (waiting at the start, while job A is on Machine I).</li>
+  </ul>
+  <figure class="mod"><img src="assets/m-sequencing.jpg" alt="Gantt chart"><figcaption><b>Fig C.1</b> · The <b>Gantt</b> tab. Machine II never waits after hour 2. Machine I is free for the last 11 hours.</figcaption></figure>
+  <div class="box tip"><span class="tag">Good to know</span>Johnson's rule gives a best (minimum-time) sequence for two machines, but it is not the only one. Many other orders also reach 61 hours (the app counts 12,344 of the 362,880 possible orders). Use the <b>Compare</b> tab to check.</div>
+</section>
+
+<!-- ============================== 21 READING RESULTS ============================== -->
+<section class="chap" id="s-results">
+  <header class="tb"><div class="code">21</div><div class="main"><div class="lab">21 / Reading results</div><h1>Reading results</h1><p class="sub">What Infeasible, Unbounded, Degenerate, Alternate optima and Iteration limit mean, and what to do.</p></div><div class="meta"><span>Sheet</span><b>21 of 25</b><span>Reference</span></div></header>
+
+  <p>Not every problem has one neat answer. OR/Studio names each special case and explains it. These are the ones you will meet most.</p>
+  <table class="t">
+    <colgroup><col style="width:20%"><col style="width:41%"><col></colgroup>
+    <thead><tr><th>Message</th><th>What it means</th><th>What to do</th></tr></thead>
+    <tbody>
+      <tr><th scope="row"><span class="chip r">Infeasible</span></th><td>No answer can satisfy every constraint at once. The app shows which constraints conflict, and a combination of them that gives a false statement (such as 0 ≥ 3). Example <code>lp-infeasible</code>: <code>x1 + x2 &lt;= 2</code> and <code>x1 + x2 &gt;= 5</code>.</td><td>Look for a wrong sign, a wrong number, or a limit that is too tight. Relax one of the conflicting constraints.</td></tr>
+      <tr><th scope="row"><span class="chip r">Unbounded</span></th><td>The objective can grow forever, because nothing stops it. The app names a direction in which you can keep improving. Example <code>lp-unbounded</code>: <code>max 2x1 + x2</code> with only <code>x1 − x2 &lt;= 10</code>.</td><td>A limit is missing. Add the constraint that a real resource would give (time, money, material), or check a wrong ≤ or ≥.</td></tr>
+      <tr><th scope="row"><span class="chip a">Degenerate</span></th><td>A basic variable is exactly 0, so several bases describe the same corner. Pivots can then leave the objective unchanged. Example <code>lp-beale</code>. In Transportation it appears as a used cell with 0 units (shown as ε).</td><td>Nothing is wrong. The answer is valid. The app handles ties with a safe rule and watches for cycling.</td></tr>
+      <tr><th scope="row"><span class="chip b">Alternate optima</span></th><td>More than one answer gives the same best value. A non-basic variable has a reduced cost of exactly 0. Every point on the edge between two optimal corners is optimal too. Example <code>lp-alt</code>: z = 10 from (0, 5/2) to (3, 1).</td><td>Choose the answer that suits you best for other reasons (cost, ease). Open the second vertex from the Solution card.</td></tr>
+      <tr><th scope="row"><span class="chip a">Iteration limit</span></th><td>The solver stopped after a fixed number of steps (1000 for simplex) to protect your browser. The last tableau is shown, but the app says <b>optimality is not claimed</b>.</td><td>Do not trust the value. Check the model for typing mistakes or huge numbers, simplify it, or try another method.</td></tr>
+      <tr><th scope="row"><span class="chip a">Redundant constraint</span></th><td>A constraint is already guaranteed by the others. It never limits the answer.</td><td>You may delete it. It is not an error.</td></tr>
+      <tr><th scope="row"><span class="chip r">Integer infeasible</span></th><td>The relaxed LP has an answer but no whole-number point does. Example <code>int-infeasible</code>: <code>2x1 = 3</code>.</td><td>Relax the whole-number rule, or change a constraint.</td></tr>
+      <tr><th scope="row"><span class="chip a">No saddle point</span></th><td>In a game, maximin and minimax differ. The players must mix their actions.</td><td>Read the mixed strategies in the result.</td></tr>
+      <tr><th scope="row"><span class="chip r">Not stable (ρ ≥ 1)</span></th><td>In a queue without a capacity limit, customers arrive faster than the servers can serve them.</td><td>Add servers or lower the arrival rate.</td></tr>
+      <tr><th scope="row"><span class="chip r">Cyclic dependency</span></th><td>In a project, activity A waits for B and B waits for A (directly or through others). The app names the loop.</td><td>Remove one of the links in the loop.</td></tr>
+      <tr><th scope="row"><span class="chip r">Check inputs</span></th><td>A number does not make sense for the model, for example an EPQ production rate that is not larger than the demand.</td><td>Read the message under the banner and fix the input it names.</td></tr>
+    </tbody>
+  </table>
+  <div class="box note"><span class="tag">Note</span>The <b>Diagnostics</b> card in the Model area lists notes about the model: for example <i>degenerate pivot</i>, <i>tie in the ratio test</i>, <i>new incumbent</i>. Many of them are for information only.</div>
+</section>
+
+<!-- ============================== 22 GLOSSARY ============================== -->
+<section class="chap" id="s-glossary">
+  <header class="tb"><div class="code">22</div><div class="main"><div class="lab">22 / Glossary of short forms</div><h1>Glossary of short forms</h1><p class="sub">The same meanings you see when you hover over a word in the app.</p></div><div class="meta"><span>Sheet</span><b>22 of 25</b><span>Reference</span></div></header>
+  <p>This list is built from the app's own dictionary (%%GLOSSARY_COUNT%% entries), so it matches the hover help. Where the same letters mean different things in two modules, the entry names the module.</p>
+  <h3 class="gl-h">Names of variables in a tableau</h3>
+  <table class="t gl"><colgroup><col style="width:34%"><col></colgroup><tbody>
+    <tr><th scope="row"><span class="term">x₁, x₂, …</span></th><td>Decision variables: quantities you choose (for example units of a product). The solver finds their best values.</td></tr>
+    <tr><th scope="row"><span class="term">s₁, s₂, …</span></th><td>Slack variables: the unused amount of a "≤" constraint. It turns the inequality into an equation. Slack 0 means the constraint is fully used.</td></tr>
+    <tr><th scope="row"><span class="term">e₁, e₂, …</span></th><td>Surplus variables: the amount by which a "≥" constraint is exceeded.</td></tr>
+    <tr><th scope="row"><span class="term">a₁, a₂, …</span></th><td>Artificial variables: temporary variables added to get a starting solution for "≥" or "=" constraints. They must end at 0 for the solution to be feasible.</td></tr>
+    <tr><th scope="row"><span class="term">S1, S2 / D1, D2</span></th><td>In Transportation: sources (supply points, rows) and destinations (demand points, columns).</td></tr>
+    <tr><th scope="row"><span class="term">M1, M2, …</span></th><td>In Job sequencing: the machines every job must pass through, in this order.</td></tr>
+  </tbody></table>
+<!--%%GLOSSARY%%-->
+</section>
+
+<!-- ============================== 23 FAQ ============================== -->
+<section class="chap faq" id="s-faq">
+  <header class="tb"><div class="code">23</div><div class="main"><div class="lab">23 / Troubleshooting and FAQ</div><h1>Troubleshooting and FAQ</h1><p class="sub">Quick answers when something looks wrong.</p></div><div class="meta"><span>Sheet</span><b>23 of 25</b><span>Reference</span></div></header>
+
+  <h3>The page says "Something went wrong in this view"</h3>
+  <p>The app shows this message, and the reason, if a view fails. Try these in order: press <b>Try again</b>; if the same message returns, press <b>Reset this module</b>. This clears only the autosave of that one module (a damaged saved or shared model can cause it). Your named saves stay. If it still fails, press <b>Back to the overview</b> and open the module again. A different message, <i>This screen could not be downloaded</i>, means the connection dropped or the app was updated while the page was open. Press <b>Reload</b>. Your work is autosaved.</p>
+
+  <h3>My numbers look different from my textbook</h3>
+  <p>Check these causes before you suspect a mistake. The <b>final answer</b> should agree; the path may not.</p>
+  <ul class="dots">
+    <li><b>Different choice at a tie.</b> Two variables may tie to enter or leave. Books choose one; the app follows a fixed rule and says when there was a tie. This can give a different pivot order, or a different (equally good) optimal corner.</li>
+    <li><b>Alternate optima.</b> The best value is the same, but the point may differ (chapter <a href="#s-results">21</a>).</li>
+    <li><b>Different entering rule.</b> The app picks the most negative reduced cost (Dantzig's rule). Some books use other rules.</li>
+    <li><b>Minimisation shown as maximisation.</b> For a minimisation, the tableau may show <i>z (shown as max −z)</i>. The sign of the z row is then reversed.</li>
+    <li><b>Rounding.</b> The app keeps exact fractions (3/2), while books often round (1.5). Check the decimal value next to the fraction (for example ≈1.5).</li>
+    <li><b>Starting methods.</b> NW corner, least cost and Vogel give different starts but the same final cost.</li>
+    <li><b>Random numbers.</b> A simulation depends on the seed or the random numbers you typed. Use <b>Given list</b> to reproduce a textbook table exactly.</li>
+    <li><b>Interval convention.</b> 00–99 versus 01–100 in simulation tables (see walk-through B).</li>
+  </ul>
+  <p>Use <b>Diff mode</b> to find where your hand working and the solver first differ.</p>
+
+  <h3>How do I update to a new version?</h3>
+  <p>The app checks for a new version every time you open it with a connection. If you still see an old version: reload the page; or do a <b>hard refresh</b> (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>, or <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd> on a Mac); or close all OR/Studio tabs or windows and open it again. For an installed app, close it and open it again while online. If this does not help, clear the site data for the app in the browser settings (this also removes saved models, so download the ones you need first).</p>
+
+  <h3>Does it work offline?</h3>
+  <p>Yes, after one visit with a connection. Open the app once online first. The app saves itself in the browser. Models, saves and exports all work offline. Only the first load and the check for updates need the internet.</p>
+
+  <h3>Which browsers are supported?</h3>
+  <p>Any recent version of Chrome, Edge, Firefox, Safari or Brave on a computer, Android or iPhone. JavaScript must be on. Very old browsers (such as Internet Explorer) are not supported. The <b>PDF</b> export uses your browser's print window, so allow pop-ups for the site.</p>
+
+  <h3>Phone tips</h3>
+  <ul class="dots">
+    <li>Tap <b>Show</b> to open the model; tap <b>Hide</b> to see the solution.</li>
+    <li>Turn the phone sideways for wide tables and graphs.</li>
+    <li>Tap a short form to read its meaning. Tap again to close it.</li>
+    <li>Use the menu button (three lines) to change module. Use the step player slider to move between steps.</li>
+    <li>Install the app (chapter <a href="#s-start">2</a>) for a full-screen view.</li>
+  </ul>
+
+  <h3>Is my data private?</h3>
+  <p>Yes. There is no server. Your models are saved only in your own browser, and never sent anywhere. A share link contains the model in the link itself, so only share it with people who may see it.</p>
+
+  <h3>I lost a model I made</h3>
+  <p>Open the module and look in <b>Open</b> (the folder icon). The autosave brings back the last model in the module. Clearing the browser's site data deletes both autosaves and saved models. Download important models as <b>JSON</b> files as a backup.</p>
+
+  <h3>The Graphical tab is missing</h3>
+  <p>That tab is only shown for models with exactly two variables.</p>
+
+  <h3>Nothing happens when I press a key</h3>
+  <p>You may be typing inside a box. Click on an empty part of the page. A dialog may also be open (Save, Open or Search). Press <kbd>Esc</kbd> to close it.</p>
+
+  <h3>I found a mistake in the app</h3>
+  <p>Please report it with the steps to repeat it at the project page: <b>github.com/Jay-Naik2526/or-studio</b>.</p>
+</section>
+
+<!-- ============================== 24 SYLLABUS ============================== -->
+<section class="chap" id="s-syllabus">
+  <header class="tb"><div class="code">24</div><div class="main"><div class="lab">24 / Syllabus map</div><h1>Syllabus map</h1><p class="sub">Where each unit of course 702CO0E034 (Operations Research) lives in OR/Studio.</p></div><div class="meta"><span>Sheet</span><b>24 of 25</b><span>Reference</span></div></header>
+  <table class="t zebra">
+    <colgroup><col style="width:50%"><col></colgroup>
+    <thead><tr><th>Unit and topic</th><th>Where in the app</th></tr></thead>
+    <tbody>
+      <tr><td><b>1</b> · Introduction to OR</td><td>The Manual page in the app, and chapter <a href="#s-what">1</a> of this guide</td></tr>
+      <tr><td><b>2</b> · LP: formulation, matrix form, extreme points, basic feasible solutions</td><td><a href="#s-lp">Linear programming</a> → Model; <b>Basic solutions</b> tab</td></tr>
+      <tr><td><b>2</b> · Graphical method and its special cases</td><td><a href="#s-lp">Linear programming</a> → <b>Graphical</b> tab (library: infeasible, unbounded, alternate optima, degenerate)</td></tr>
+      <tr><td><b>2</b> · Simplex, Big-M, two-phase, dual simplex</td><td><a href="#s-lp">Linear programming</a> → <b>Method</b> switch</td></tr>
+      <tr><td><b>2</b> · Sensitivity analysis and duality</td><td><a href="#s-lp">Linear programming</a> → <b>Sensitivity</b>, <b>Duality</b> and <b>Primal–dual</b> tabs</td></tr>
+      <tr><td><b>3</b> · Gomory cuts, branch and bound</td><td><a href="#s-integer">Integer programming</a></td></tr>
+      <tr><td><b>4</b> · Transportation: NWCR, least cost, VAM, MODI, variations</td><td><a href="#s-transport">Transportation</a></td></tr>
+      <tr><td><b>4</b> · Assignment: Hungarian method, variations</td><td><a href="#s-assign">Assignment</a></td></tr>
+      <tr><td><b>5</b> · CPM, PERT, crashing</td><td><a href="#s-project">Project planning</a> (and <a href="#s-network">Network models</a>)</td></tr>
+      <tr><td><b>6</b> · Two-person zero-sum games</td><td><a href="#s-games">Zero-sum games</a></td></tr>
+      <tr><td><b>7</b> · Simulation: random numbers, generators, demand tables, inventory systems</td><td><a href="#s-simulation">Simulation</a> → <b>Demand table</b>, <b>Inventory</b>, <b>RNG lab</b></td></tr>
+      <tr><td><b>7</b> · Discrete-event simulation (clock, event list), queuing systems</td><td><a href="#s-simulation">Simulation</a> → <b>Queue sim</b>; <a href="#s-queuing">Queuing analysis</a></td></tr>
+      <tr><td><b>7</b> · n jobs through two, three and m machines</td><td><a href="#s-sequencing">Job sequencing</a></td></tr>
+    </tbody>
+  </table>
+  <p class="part"><span class="pn">E</span>Experiment 10 (simulation models)</p>
+  <table class="t zebra">
+    <colgroup><col style="width:32%"><col style="width:40%"><col></colgroup>
+    <thead><tr><th>Activity</th><th>Feature</th><th>Library problem</th></tr></thead>
+    <tbody>
+      <tr><td><b>1</b> · Demand simulation with random numbers</td><td>Simulation → <b>Demand table</b> (<a href="#s-wb">Walk-through B</a>)</td><td><code>sim-exp10-demand</code></td></tr>
+      <tr><td><b>2</b> · Random-number generators and methods</td><td>Simulation → <b>RNG lab</b></td><td><code>sim-rng-lcg</code>, <code>sim-rng-midsquare</code></td></tr>
+      <tr><td><b>4</b> · Johnson's rule for n jobs on two machines</td><td>Job sequencing → <b>Johnson</b> (<a href="#s-wc">Walk-through C</a>)</td><td><code>seq-exp10</code></td></tr>
+      <tr><td><b>5</b> · Three machines, and job–machine assignment</td><td>Job sequencing with three machines; <a href="#s-assign">Assignment</a> for the job–machine assignment view</td><td><code>seq-3m</code>, <code>as-3x3</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================== 25 ABOUT ============================== -->
+<section class="chap" id="s-about">
+  <header class="tb"><div class="code">25</div><div class="main"><div class="lab">25 / About</div><h1>About</h1><p class="sub">Who made OR/Studio and this guide, and how it may be used.</p></div><div class="meta"><span>Sheet</span><b>25 of 25</b><span>Reference</span></div></header>
+  <p class="lead">OR/Studio was <span class="hl">built for the Operations Research course</span> at <b>NMIMS Shirpur</b>, so that every student can see how each method works, step by step, for free.</p>
+  <div class="kv">
+    <div>App</div><div><b>OR/Studio</b>, version %%VERSION%%. Thirteen solver modules, %%GLOSSARY_COUNT%% explained short forms and 66 worked problems.</div>
+    <div>Course</div><div>Operations Research, code 702CO0E034, NMIMS Shirpur.</div>
+    <div>This guide</div><div>Written by <b>Dr. Praveenkumar Loharkar</b>.</div>
+    <div>Licence</div><div><b>MIT licence.</b> You may use, copy, change and share the app and its code, free of charge, as long as the licence notice stays.</div>
+    <div>Source code</div><div>github.com/Jay-Naik2526/or-studio</div>
+    <div>Live app</div><div>or-studio.antideploy.app</div>
+    <div>Based on</div><div>The curriculum of Hamdy A. Taha, <i>Operations Research: An Introduction</i>. OR/Studio is not affiliated with the TORA software or its publisher.</div>
+  </div>
+
+  <p class="part"><span class="pn">1</span>How OR/Studio keeps its answers right</p>
+  <ul class="dots">
+    <li><b>Exact arithmetic.</b> Simplex pivots, MODI, Gomory cuts, branch and bound, Markov steady states and game strategies use exact fractions, so 1/3 is stored as 1/3 and never as 0.333.</li>
+    <li><b>Symbolic M.</b> Big-M and prohibited routes keep M as a symbol. No large number is ever put in its place.</li>
+    <li><b>Cross-checked.</b> The automatic tests compare the solvers against independent methods on thousands of random problems.</li>
+    <li><b>Honest limits.</b> It is made for textbook-size problems. Queues, inventory and simulation use ordinary decimal numbers.</li>
+  </ul>
+  <p class="part"><span class="pn">2</span>Made accessible</p>
+  <p>Every control can be reached with the keyboard. Step changes are announced to screen readers. Tables have headings. Colours always come with words or icons, and animations respect the <i>reduce motion</i> setting of your device.</p>
+
+  <p class="part"><span class="pn">3</span>Thank you</p>
+  <p>Thank you to the students and teachers of the course who tried the app and asked for clearer explanations. This guide exists because of your questions.</p>
+</section>
+
+<script>
+  // place the numbered markers on the annotated screenshot (positions are in the pixels of the original capture)
+  document.querySelectorAll('.annot').forEach(function (box) {
+    var W = 1180, H = 1060;
+    box.querySelectorAll('.mk').forEach(function (m) {
+      m.style.left = (parseFloat(m.getAttribute('data-x')) / W * 100) + '%';
+      m.style.top = (parseFloat(m.getAttribute('data-y')) / H * 100) + '%';
+    });
+  });
+</script>
+</body>
+</html>

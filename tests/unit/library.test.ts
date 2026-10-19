@@ -14,6 +14,12 @@ import { solveMarkovChain } from '../../src/core/solvers/markov/markov';
 import { solveInventory } from '../../src/core/solvers/inventory/inventory';
 import { solveQueue } from '../../src/core/solvers/queuing/queuing';
 import { Rational } from '../../src/core/math/rational';
+import { solveSequencing, buildSeqModel, SeqMethod } from '../../src/core/solvers/sequencing/sequencing';
+import { SequencingSpec } from '../../src/data/specs';
+import { SimSpec } from '../../src/data/specs';
+import { simulateDemand } from '../../src/core/solvers/simulation/demandTable';
+import { simulateInventory } from '../../src/core/solvers/simulation/inventorySim';
+import { demandInputFromSpec, inventoryInputFromSpec, rngRunFromSpec } from '../../src/core/solvers/simulation/specInputs';
 
 const R = (s: string) => Rational.parse(s);
 const blocked = (s: string) => /^(m|x)$/i.test(s.trim());
@@ -98,6 +104,42 @@ describe('problem library is consistent with the solvers', () => {
           const r = e.id === 'inv-news' ? solveInventory({ model: 'newsvendor', sellingPrice: Number(s.price), unitCost: Number(s.c), salvageValue: Number(s.salvage), demandDist: 'normal', mean: Number(s.mean), stdDev: Number(s.sd) }) : { error: undefined, Q: 0 };
           expect(r.error).toBeUndefined();
           if (check) expect(Math.round(r.Q!)).toBe(Number(check));
+          break;
+        }
+        case 'simulation': {
+          const s = e.spec as SimSpec;
+          if (s.kind === 'demand') {
+            const inp = demandInputFromSpec(s.demand!, s.generator, 1);
+            expect('error' in inp, JSON.stringify(inp)).toBe(false);
+            const r = simulateDemand((inp as { input: Parameters<typeof simulateDemand>[0] }).input);
+            expect(r.error).toBeUndefined();
+            expect(String(r.total)).toBe(check);
+          } else if (s.kind === 'inventory') {
+            const inp = inventoryInputFromSpec(s.inventory!, s.generator, 1);
+            expect('error' in inp, JSON.stringify(inp)).toBe(false);
+            const r = simulateInventory((inp as { input: Parameters<typeof simulateInventory>[0] }).input);
+            expect(r.error).toBeUndefined();
+            expect(String(r.totals.total)).toBe(check);
+          } else if (s.kind === 'rng') {
+            const r = rngRunFromSpec(s.rng!, s.rng!.method === 'midsquare' ? 'midsquare' : 'lcg');
+            expect(r.error).toBeUndefined();
+            expect(String(s.rng!.method === 'midsquare' ? r.states[0] : r.cycle.length)).toBe(check);
+          }
+          break;
+        }
+        case 'sequencing': {
+          const built = buildSeqModel(e.spec as SequencingSpec);
+          expect(built.error).toBeNull();
+          const method = (e.variant ?? 'johnson') as SeqMethod;
+          const sol = solveSequencing(built.model!, method);
+          expect(sol.status).toBe('optimal');
+          if (check) expect(sol.result!.makespan.toString()).toBe(check);
+          // the exact optimum can never be worse, and equals the answer wherever the method is guaranteed
+          if (built.model!.jobs.length <= 9) {
+            const ex = solveSequencing(built.model!, 'exact', { emitSteps: false }).result!;
+            expect(ex.makespan.lte(sol.result!.makespan)).toBe(true);
+            if (sol.result!.guaranteedOptimal) expect(ex.makespan.toString()).toBe(check);
+          }
           break;
         }
         default: break;

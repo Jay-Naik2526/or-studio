@@ -356,3 +356,12 @@ html .katex { font-size: 1.28em; }
   input[type="checkbox"], input[type="radio"] { width: 1.15rem; height: 1.15rem; accent-color: var(--text); cursor: pointer; vertical-align: middle; }
   @media (pointer: coarse), (max-width: 1023px) { input[type="checkbox"], input[type="radio"] { width: 1.5rem; height: 1.5rem; } }
 }
+
+/* ---- glossary hover layer ---- */
+@layer components {
+  [data-term]:not(button):not([role="radio"]):not([role="tab"]):not(a):not(.btn) { text-decoration: underline dotted var(--text-3); text-decoration-thickness: 1px; text-underline-offset: 3px; cursor: help; }
+  #glossary-tip { position: fixed; z-index: 90; max-width: min(22rem, calc(100vw - 16px)); padding: .65rem .85rem; background: var(--surface); color: var(--text); border: 1px solid var(--accent-edge); box-shadow: 3px 3px 0 var(--btn-shadow); pointer-events: none; font-size: .88rem; line-height: 1.45; }
+  #glossary-tip .gt-title { font-weight: 700; margin-bottom: .2rem; font-size: .92rem; }
+  #glossary-tip .gt-def { color: var(--text-2); }
+  @media print { #glossary-tip { display: none !important; } [data-term] { text-decoration: none !important; } }
+}

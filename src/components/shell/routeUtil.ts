@@ -7,7 +7,7 @@ export function safeDecode(s: string): string {
 
 export type Resolved =
   | { kind: 'hub' }
-  | { kind: 'library' | 'about' | 'docs' }
+  | { kind: 'library' | 'about' | 'docs' | 'guide' }
   | { kind: 'module'; id: string }
   | { kind: 'unknown-module'; id: string }
   | { kind: 'not-found'; id: string };
@@ -17,7 +17,7 @@ export function resolveRoute(path: string[], moduleIds: readonly string[]): Reso
   const first = path[0];
   if (first === undefined) return { kind: 'hub' };
   const head = safeDecode(first).toLowerCase();
-  if (head === 'library' || head === 'about' || head === 'docs') return { kind: head };
+  if (head === 'library' || head === 'about' || head === 'docs' || head === 'guide') return { kind: head };
   if (head === 'm') {
     const raw = path[1] === undefined ? '' : safeDecode(path[1]);
     const id = raw.toLowerCase();

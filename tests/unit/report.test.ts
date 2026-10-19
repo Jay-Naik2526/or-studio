@@ -51,5 +51,5 @@ describe('model files', () => {
     await expect(readModelFile(file({ moduleId: 'lp', model: 5 }))).rejects.toThrow(/damaged/);
     await expect(readModelFile(file({ foo: 1 }))).rejects.toThrow(/not an OR-Studio model/);
   });
-  it('knows all twelve modules', () => { expect(MODULE_IDS.length).toBe(12); });
+  it('knows all thirteen modules', () => { expect(MODULE_IDS.length).toBe(13); });
 });

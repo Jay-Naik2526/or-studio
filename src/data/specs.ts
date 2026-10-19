@@ -3,9 +3,12 @@
  * save / load / share-URL round trips exactly.
  */
 
-export type ModuleId = 'lp' | 'integer' | 'transport' | 'assign' | 'network' | 'project' | 'queuing' | 'inventory' | 'games' | 'markov' | 'simulation' | 'nlp';
+export type ModuleId = 'lp' | 'integer' | 'transport' | 'assign' | 'network' | 'project' | 'queuing' | 'inventory' | 'games' | 'markov' | 'simulation' | 'nlp' | 'sequencing';
 
 export interface LPSpec { text: string }
+
+/** Job sequencing: jobs × machines processing times (every job visits the machines in the listed order). */
+export interface SequencingSpec { jobs: string[]; machines: string[]; times: string[][] }
 
 export interface TransportSpec {
   rows: string[]; cols: string[];
@@ -50,12 +53,31 @@ export interface MarkovSpec { names: string[]; P: string[][]; init: string[]; n:
 
 export interface DistSpec { type: 'uniform' | 'exponential' | 'normal' | 'triangular' | 'poisson' | 'discrete' | 'constant'; p1: string; p2: string; p3: string; values: string }
 
+/** A discrete table row: value and probability, kept as text so partial edits survive. */
+export interface SimTableRow { value: string; prob: string }
+export interface SimDemandSpec {
+  rows: SimTableRow[]; source: 'given' | 'generate'; rns: string; digits: string;
+  /** 'zero' = random numbers 00…99; 'one' = 01…100 where 00 stands for 100 */
+  convention: 'zero' | 'one'; days: string;
+}
+export interface SimInventorySpec {
+  demand: SimTableRow[]; lead: SimTableRow[]; leadMode: 'fixed' | 'table'; leadFixed: string;
+  source: 'given' | 'generate'; rns: string; leadRns: string; digits: string; convention: 'zero' | 'one'; days: string;
+  S: string; R: string; initial: string; orderCost: string; holdCost: string; shortCost: string; backorders: boolean;
+  sFrom: string; sTo: string; sStep: string;
+}
+export interface SimRngSpec {
+  method: 'overview' | 'midsquare' | 'lcg' | 'mt' | 'inverse';
+  msSeed: string; msDigits: string; lcgA: string; lcgC: string; lcgM: string; lcgSeed: string; sample: string;
+}
 export interface SimSpec {
-  kind: 'montecarlo' | 'queue';
+  kind: 'montecarlo' | 'queue' | 'demand' | 'inventory' | 'rng';
   seed: string; generator: 'lcg' | 'mt';
   vars: { name: string; dist: DistSpec }[];
   expression: string; trials: string; threshold: string;
   interarrival: DistSpec; service: DistSpec; servers: string; customers: string; warmup: string;
+  /** optional so that saved models made before these variants existed still load */
+  demand?: SimDemandSpec; inventory?: SimInventorySpec; rng?: SimRngSpec;
 }
 
 export interface NLPSpec {

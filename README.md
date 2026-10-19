@@ -14,7 +14,7 @@
 
 <p align="center">
   <b>OR/Studio</b> is a free, offline, in-browser <b>Operations Research workbench</b>.<br />
-  Twelve solvers, exact fractions, and every step shown <i>and explained</i> — a modern replacement for TORA.
+  Thirteen solvers, exact fractions, and every step shown <i>and explained</i> — a modern replacement for TORA.
 </p>
 
 ---
@@ -32,13 +32,13 @@ Most solvers hand you an answer. OR/Studio hands you the **working**: each table
 | **Honest edge cases** | Unbounded, infeasible, degenerate, cycling, alternate optima, negative cycles, disconnected graphs — each is detected and explained, not hidden. |
 | **Private by design** | No account, no server, no network calls. Everything runs and is stored in your browser; it installs as an offline app. |
 
-<p align="center"><img src="docs/solvers.svg" alt="The twelve solver modules" width="100%" /></p>
+<p align="center"><img src="docs/solvers.svg" alt="The thirteen solver modules" width="100%" /></p>
 
-## The twelve solvers
+## The thirteen solvers
 
 | Module | Methods |
 |---|---|
-| **Linear programming** | Simplex · Two-phase · Big-M · Dual simplex · Graphical (draggable constraints) · Exact sensitivity analysis and what-if |
+| **Linear programming** | Simplex · Two-phase · Big-M · Dual simplex · Primal–dual algorithm · Graphical (draggable constraints) · Exact sensitivity analysis and what-if · Duality formulation · Basic feasible solutions and extreme points |
 | **Integer programming** | Branch & bound (zoomable tree, three node-selection rules, incumbent chart) · Gomory fractional and mixed-integer cuts |
 | **Nonlinear programming** | Gradient and Newton with symbolic derivatives and contour plots · KKT verification · Exact quadratic programming |
 | **Transportation** | North-west corner · Least-cost · Vogel · MODI with the closed loop drawn · Stepping-stone · Method comparison · Prohibited routes |
@@ -49,9 +49,10 @@ Most solvers hand you an answer. OR/Studio hands you the **working**: each table
 | **Inventory** | EOQ · EPQ · Planned shortages · All-units and incremental discounts · Newsvendor |
 | **Zero-sum games** | Saddle points · Dominance · Graphical solution · Exact LP method |
 | **Markov chains** | n-step transitions · Steady state · Classes and periodicity · Absorbing analysis · First-passage times |
-| **Simulation** | Seedable generators · Monte Carlo with confidence intervals · Multi-server discrete-event queue |
+| **Simulation** | Seedable generators · Monte Carlo with confidence intervals · Multi-server discrete-event queue · Demand tables with random-number intervals · Inventory simulation · Random-number lab (mid-square, LCG, chi-square test) |
+| **Job sequencing** | Johnson's rule for two machines · Three-machine reduction · CDS heuristic for m machines · Exact search · Gantt chart with idle times |
 
-Plus a **problem library** of 55 worked textbook problems, each re-solved and checked by the test suite.
+Plus a **user guide** (PDF, readable inside the app and downloadable), **hover explanations** for every short form, and a **problem library** of 60+ worked textbook problems, each re-solved and checked by the test suite.
 
 ## Export, save and share
 
